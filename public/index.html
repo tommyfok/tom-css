@@ -1,0 +1,37 @@
+<!doctype html>
+<html ng-app="HongQi"
+      ng-controller="HongQiCtrl as hq">
+    <head>
+        <title>宏琪客服</title>
+        <link rel="stylesheet" type="text/css" href="/style/main.css">
+    </head>
+
+    <body>
+        <div class="Wrapper">
+            <div class="Wrapper-inner">
+                <div class="Dialog-box">
+                    <div class="Dialogs"
+                         id="Dialogs">
+                        <div class="Dialog-item"
+                             ng-class="{'remote': item.src === 'remote'}"
+                             ng-repeat="item in hq.messages">
+                            <p ng-bind="item.content"></p>
+                        </div>
+                    </div>
+
+                    <form class="Dialog-form"
+                          ng-submit="hq.submitText()">
+                        <textarea ng-model="hq.currentText" required></textarea>
+                        <button type="submit">发送</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/angular.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/socket.js"></script>
+    <script src="/js/main.controller.js"></script>
+</html>
