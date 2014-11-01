@@ -3,45 +3,36 @@ angular.module('HongQi')
 .controller('HongQiCtrl', function ($scope, hqSocket) {
   var self   = this,
       dialog = document.getElementById('Dialogs');
-  self.users    = [];
+
   self.messages = [];
-  self.messages.push({
-    content: '您好，请问有什么可以帮到您？',
-    src: 'remote'
-  });
 
   self.submitText = function () {
     if (self.currentText) {
-      hqSocket.emit('webMsg', {
-        content: self.currentText
-      });
+      hqSocket.emit('webMsg', self.currentText);
       self.currentText = '';
       dialog.scrollTop = dialog.scrollHeight;
     }
   };
 
-  hqSocket.on('addToDialog', function (data) {
-    $scope.$apply(function () {
-      self.messages.push(data);
-    });
-    dialog.scrollTop = dialog.scrollHeight;
+  self.submitIfEnter = function (e) {
+    var e = e || window.event;
+    if (e.keyCode === 13) {
+      self.submitText();
+    }
+  };
+
+  hqSocket.on('connectionSuccess', $scope, function (user) {
+    self.profile = user;
   });
 
-  hqSocket.on('recepted', function (receptor) {
-    $scope.$apply(function () {
-      if (self.receptor !== receptor) {
-        self.receptor = receptor;
-        self.messages.push({
-          src: 'remote',
-          content: '您好，客服 ' + receptor + ' 为您服务'
-        });
-      }
-    });
+  hqSocket.on('recepted', $scope, function (msg) {
+    if (self.profile.target !== msg.from) {
+      self.profile.target = msg.from;
+      self.messages.push(msg);
+    }
   });
 
-  hqSocket.on('updateAllUsers', function (data) {
-    $scope.$apply(function () {
-      self.users.push(data);
-    });
+  hqSocket.on('addMsg', $scope, function (msg) {
+    self.messages.push(msg);
   });
 });

@@ -13,15 +13,17 @@
                     <div class="Dialogs"
                          id="Dialogs">
                         <div class="Dialog-item"
-                             ng-class="{'remote': item.src === 'remote'}"
-                             ng-repeat="item in hq.messages">
-                            <p ng-bind="item.content"></p>
+                             ng-class="{'remote': msg.to === hq.profile.id}"
+                             ng-repeat="msg in hq.messages">
+                            <p ng-bind="msg.content"></p>
                         </div>
                     </div>
 
                     <form class="Dialog-form"
                           ng-submit="hq.submitText()">
-                        <textarea ng-model="hq.currentText" required></textarea>
+                        <textarea ng-model="hq.currentText"
+                                  ng-keydown="hq.submitIfEnter()"
+                                  required></textarea>
                         <button type="submit">发送</button>
                     </form>
                 </div>

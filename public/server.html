@@ -7,26 +7,9 @@
     </head>
 
     <body>
-        <div class="Wrapper">
+        <div class="Wrapper"
+             ng-class="{'manage': hq.isLoggedIn}">
             <div class="Wrapper-inner">
-                <div class="Dialog-box"
-                     ng-show="hq.isLoggedIn">
-                    <div class="Dialogs"
-                         id="Dialogs">
-                        <div class="Dialog-item"
-                             ng-class="{'remote': item.src === 'remote'}"
-                             ng-repeat="item in hq.messages">
-                            <p ng-bind="item.content"></p>
-                        </div>
-                    </div>
-
-                    <form class="Dialog-form"
-                          ng-submit="hq.submitText()">
-                        <textarea ng-model="hq.currentText" required></textarea>
-                        <button type="submit">发送</button>
-                    </form>
-                </div>
-
                 <form class="Login-form"
                       ng-show="!hq.isLoggedIn"
                       ng-submit="hq.login()">
@@ -35,13 +18,69 @@
                     <button type="submit">登陆</button>
                 </form>
 
-                <ul class="Users"
-                    ng-show="hq.isLoggedIn && hq.users">
-                    <li ng-repeat="item in hq.users"
-                        ng-bind="item.name"
-                        ng-click="hq.recept(item.id)"
-                        ng-class="{'active': hq.receptingId === item.id}"></li>
-                </ul>
+                <div>
+                    <div class="Dialog-box"
+                         ng-show="hq.isLoggedIn">
+                        <div class="Dialogs"
+                             id="Dialogs">
+                            <div class="Dialog-item"
+                                 ng-class="{'remote': msg.from === hq.profile.target}"
+                                 ng-repeat="msg in hq.messages"
+                                 ng-if="(msg.from === hq.profile.target) || (msg.to === hq.profile.target)">
+                                <p ng-bind="msg.content"></p>
+                            </div>
+                        </div>
+
+                        <form class="Dialog-form"
+                              ng-submit="hq.submitText()">
+                            <textarea ng-model="hq.currentText"
+                                      ng-keydown="hq.submitIfEnter()"
+                                      required></textarea>
+                            <button type="submit">发送</button>
+                        </form>
+                    </div>
+
+                    <div class="Users" ng-show="hq.users.length > 1">
+                        <div class="User-tabs">
+                            <span class="User-tab"
+                                  ng-click="hq.userTab = 'pending'"
+                                  ng-class="{active: hq.userTab === 'pending'}">未处理</span>
+
+                            <span class="User-tab"
+                                  ng-click="hq.userTab = 'recepting'"
+                                  ng-class="{active: hq.userTab === 'recepting'}">处理中</span>
+
+                            <span class="User-tab"
+                                  ng-click="hq.userTab = 'manager'"
+                                  ng-class="{active: hq.userTab === 'manager'}">管理员</span>
+
+                        </div>
+
+                        <ul class="Users-pending"
+                            ng-show="hq.isLoggedIn && hq.userTab === 'pending'">
+                            <li ng-repeat="user in hq.users"
+                                ng-bind="user.name"
+                                ng-if="user.role === 'customer' && user.target === ''"
+                                ng-click="hq.recept(user.id)"></li>
+                        </ul>
+
+                        <ul class="Users-recepting"
+                            ng-show="hq.isLoggedIn && hq.userTab === 'recepting'">
+                            <li ng-repeat="user in hq.users"
+                                ng-bind="user.name"
+                                ng-if="user.role === 'customer' && user.target !== ''"
+                                ng-class="{'active': user.id === hq.profile.target}"
+                                ng-click="hq.recept(user.id)"></li>
+                        </ul>
+
+                        <ul class="Users-manager"
+                            ng-show="hq.isLoggedIn && hq.userTab === 'manager'">
+                            <li ng-repeat="user in hq.users"
+                                ng-bind="user.name"
+                                ng-if="user.role === 'manager'"></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </body>
