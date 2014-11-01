@@ -1,16 +1,15 @@
 angular.module('HongQi')
 
-.controller('HongQiCtrl', function ($scope, hqSocket) {
+.controller('HongQiCtrl', function ($scope, $timeout, hqSocket) {
   var self   = this,
       dialog = document.getElementById('Dialogs');
 
-  self.messages = [];
+  self.messages   = [];
 
   self.submitText = function () {
     if (self.currentText) {
       hqSocket.emit('webMsg', self.currentText);
       self.currentText = '';
-      dialog.scrollTop = dialog.scrollHeight;
     }
   };
 
@@ -34,5 +33,8 @@ angular.module('HongQi')
 
   hqSocket.on('addMsg', $scope, function (msg) {
     self.messages.push(msg);
+    $timeout(function () {
+      dialog.scrollTop = dialog.scrollHeight;
+    }, 100);
   });
 });

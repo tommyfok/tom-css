@@ -24,7 +24,8 @@ body {
 }
 
 .Login-form {
-    width: 500px;
+    width: 50%;
+    min-width: 500px;
     margin: 0 auto;
 }
 
@@ -33,7 +34,8 @@ body {
 }
 
 .Dialog-box {
-    width: 500px;
+    width: 50%;
+    min-width: 500px;
     margin: 0 auto;
     padding: 10px;
     background: #f90;
@@ -141,6 +143,18 @@ body {
     font-size: 12px;
     text-align: center;
     cursor: pointer;
+    position: relative;
+}
+
+.User-tab .unreads {
+    position: absolute;
+    top: 50%;
+    left: 8%;
+    margin-top: -3px;
+    width: 6px;
+    height: 6px;
+    background: red;
+    border-radius: 3px;
 }
 
 .User-tab.active {
@@ -157,14 +171,38 @@ body {
 .Users ul li {
     display: block;
     font-size: 12px;
+    line-height: 1.5em;
     cursor: pointer;
-    padding: 10px;
     border: 1px solid #ddd;
     margin: 5px;
+    padding: 10px;
     border-radius: 5px;
     background: white;
     -webkit-transition: all .3s ease-out;
     transition: all .3s ease-out;
+    position: relative;
+}
+
+.Users ul li .unreads {
+    position: absolute;
+    width: 8px;
+    height: 18px;
+    top: 50%;
+    margin-top: -11px;
+    right: 5px;
+    border-radius: 10px;
+    text-align: center;
+    line-height: 18px;
+    padding: 0 5px;
+    font-size: 12px;
+    border: 1px solid #f60;
+    color: #f60;
+    background: white;
+}
+
+.Users ul li:hover .unreads {
+    color: white;
+    background: #f60;
 }
 
 .Users ul li:hover {

@@ -26,7 +26,7 @@
                             <div class="Dialog-item"
                                  ng-class="{'remote': msg.from === hq.profile.target}"
                                  ng-repeat="msg in hq.messages"
-                                 ng-if="(msg.from === hq.profile.target) || (msg.to === hq.profile.target)">
+                                 ng-if="(msg.from === hq.profile.target) || (msg.to === hq.profile.target && msg.to !== '')">
                                 <p ng-bind="msg.content"></p>
                             </div>
                         </div>
@@ -42,15 +42,23 @@
 
                     <div class="Users" ng-show="hq.users.length > 1">
                         <div class="User-tabs">
-                            <span class="User-tab"
+                            <span class="User-tab pending"
                                   ng-click="hq.userTab = 'pending'"
-                                  ng-class="{active: hq.userTab === 'pending'}">未处理</span>
+                                  ng-class="{active: hq.userTab === 'pending'}">
+                                <span class="unreads"
+                                      ng-show="hq.hasPendingUser()"></span>
+                                未处理
+                            </span>
 
-                            <span class="User-tab"
+                            <span class="User-tab recepting"
                                   ng-click="hq.userTab = 'recepting'"
-                                  ng-class="{active: hq.userTab === 'recepting'}">处理中</span>
+                                  ng-class="{active: hq.userTab === 'recepting'}">
+                                <span class="unreads"
+                                      ng-show="hq.unreads.length"></span>
+                                处理中
+                            </span>
 
-                            <span class="User-tab"
+                            <span class="User-tab manager"
                                   ng-click="hq.userTab = 'manager'"
                                   ng-class="{active: hq.userTab === 'manager'}">管理员</span>
 
@@ -59,18 +67,26 @@
                         <ul class="Users-pending"
                             ng-show="hq.isLoggedIn && hq.userTab === 'pending'">
                             <li ng-repeat="user in hq.users"
-                                ng-bind="user.name"
                                 ng-if="user.role === 'customer' && user.target === ''"
-                                ng-click="hq.recept(user.id)"></li>
+                                ng-click="hq.recept(user.id)">
+                                {{ user.name }}
+                                <span class="unreads"
+                                      ng-show="hq.countPendings(user.id)"
+                                      ng-bind="hq.countPendings(user.id)"></span>
+                            </li>
                         </ul>
 
                         <ul class="Users-recepting"
                             ng-show="hq.isLoggedIn && hq.userTab === 'recepting'">
                             <li ng-repeat="user in hq.users"
-                                ng-bind="user.name"
                                 ng-if="user.role === 'customer' && user.target !== ''"
                                 ng-class="{'active': user.id === hq.profile.target}"
-                                ng-click="hq.recept(user.id)"></li>
+                                ng-click="hq.recept(user.id)">
+                                {{ user.name }}
+                                <span class="unreads"
+                                      ng-show="hq.countUnreads(user.id)"
+                                      ng-bind="hq.countUnreads(user.id)">{{ user.name }}</span>
+                            </li>
                         </ul>
 
                         <ul class="Users-manager"

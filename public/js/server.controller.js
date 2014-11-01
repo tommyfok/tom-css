@@ -1,12 +1,14 @@
 angular.module('HongQi')
 
-.controller('HongQiCtrl', function ($scope, hqSocket) {
+.controller('HongQiCtrl', function ($scope, $timeout, hqSocket) {
   var self   = this,
       dialog = document.getElementById('Dialogs');
   self.messages      = [];
   self.users         = [];
   self.profile       = {};
   self.userTab       = 'pending';
+  self.unreads       = [];
+  self.pendings      = [];
 
   self.getUser = function (id) {
     for (var i = 0, l = self.users.length; i < l; i++) {
@@ -17,29 +19,65 @@ angular.module('HongQi')
     return null;
   };
 
-  self.removeMsgFrom = function (uid) {
-    for (var i = 0, l = self.messages.length; i < l; i++) {
-      if (self.messages[i].from === uid) {
-        self.messages.splice(i, 1);
+  self.removeMsgFrom = function (uid, group) {
+    for (var i = 0, l = group.length; i < l; i++) {
+      if (group[i].from === uid) {
+        group.splice(i, 1);
         l--;
+        i--;
       }
     }
   };
 
-  self.removeMsgTo = function (uid) {
-    for (var i = 0, l = self.messages.length; i < l; i++) {
-      if (self.messages[i].to === uid) {
-        self.messages.splice(i, 1);
+  self.removeMsgTo = function (uid, group) {
+    for (var i = 0, l = group.length; i < l; i++) {
+      if (group[i].to === uid) {
+        group.splice(i, 1);
         l--;
+        i--;
       }
     }
+  };
+
+  self.removeAllMsg = function (uid, group) {
+    var group = group || self.messages;
+    self.removeMsgFrom(uid, group);
+    self.removeMsgTo(uid, group);
+  };
+
+  self.hasPendingUser = function () {
+    for (var i = 0, l = self.users.length; i < l; i++) {
+      if (self.users[i].target === '' && self.users[i].id !== self.profile.id) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  self.countPendings = function (uid) {
+    var count = 0;
+    for (var i = 0, l = self.pendings.length; i < l; i++) {
+      if (self.pendings[i].from === uid) {
+        count++;
+      }
+    }
+    return count;
+  };
+
+  self.countUnreads = function (uid) {
+    var count = 0;
+    for (var i = 0, l = self.unreads.length; i < l; i++) {
+      if (self.unreads[i].from === uid) {
+        count++;
+      }
+    }
+    return count;
   };
 
   self.submitText = function () {
     if (self.currentText) {
       hqSocket.emit('webMsg', self.currentText);
       self.currentText = '';
-      dialog.scrollTop = dialog.scrollHeight;
     }
   };
 
@@ -52,7 +90,7 @@ angular.module('HongQi')
 
   self.recept = function (id) {
     hqSocket.emit('receptUser', id);
-    self.loading = true;
+    self.userTab = 'recepting';
   };
 
   self.login = function () {
@@ -89,7 +127,8 @@ angular.module('HongQi')
       self.profile.target = data.recepted;
     }
     self.getUser(data.recepted).target = data.receptor;
-    self.loading = false;
+    self.removeAllMsg(data.recepted, self.unreads);
+    self.removeAllMsg(data.recepted, self.pendings);
   });
 
   hqSocket.on('addUser', $scope, function (user) {
@@ -98,11 +137,21 @@ angular.module('HongQi')
 
   hqSocket.on('customerDisconnect', $scope, function (id) {
     self.users.splice(self.users.indexOf(self.getUser(id)), 1);
-    self.removeMsgTo(id);
-    self.removeMsgFrom(id);
+    self.removeAllMsg(id);
+    self.removeAllMsg(id, self.unreads);
   });
 
   hqSocket.on('addMsg', $scope, function (msg) {
     self.messages.push(msg);
+    var newMsg = self.messages[self.messages.length - 1];
+    if (newMsg.to === '') {
+      self.pendings.push(newMsg);
+    } else if (newMsg.to === self.profile.id && self.profile.target !== newMsg.from) {
+      self.unreads.push(newMsg);
+    } else {
+      $timeout(function () {
+        dialog.scrollTop = dialog.scrollHeight;
+      }, 100);
+    }
   });
 });
