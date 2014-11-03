@@ -3,6 +3,7 @@ body {
     margin: 0;
     padding: 0;
     height: 100%;
+    background: #f6f6f6;
 }
 
 .Wrapper {
@@ -24,18 +25,57 @@ body {
 }
 
 .Login-form {
-    width: 50%;
-    min-width: 500px;
+    width: 500px;
     margin: 0 auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #fff;
+    color: #f60;
+    font-size: 12px;
+}
+
+.Login-form table {
+    width: 80%;
+    padding: 0;
+    margin: 30px auto;
+}
+
+.Login-form th { text-align: left; }
+.Login-form td { text-align: right; }
+
+.Login-form input,
+.Login-form button {
+    outline: none;
+    display: inline-block;
+    border: none;
+    background: #fff;
+    color: #f60;
+}
+
+.Login-form button {
+    background: #fff;
+    color: #f60;
+    text-align: center;
+    margin-top: 24px;
+    padding: 6px 12px;
+    border: 1px solid #f60;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.Login-form button:hover {
+    background: #f60;
+    color: #fff;
 }
 
 .Login-form input {
-    outline: none;
+    border-bottom: 1px solid #f60;
+    width: 100%;
+    padding: 12px 0;
 }
 
 .Dialog-box {
-    width: 50%;
-    min-width: 500px;
+    width: 500px;
     margin: 0 auto;
     padding: 10px;
     background: #f90;

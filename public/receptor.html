@@ -8,14 +8,27 @@
 
     <body>
         <div class="Wrapper"
-             ng-class="{'manage': hq.isLoggedIn}">
+             ng-class="{'manage':  hq.users.length > 1}">
             <div class="Wrapper-inner">
                 <form class="Login-form"
                       ng-show="!hq.isLoggedIn"
                       ng-submit="hq.login()">
-                    <input type="text" placeholder="账号" ng-model="hq.username" required>
-                    <input type="password" placeholder="密码" ng-model="hq.password" required>
-                    <button type="submit">登陆</button>
+                    <table border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <th width="20%">帐号</th>
+                            <td width="80%"><input type="text" placeholder="账号" ng-model="hq.username" required></td>
+                        </tr>
+
+                        <tr>
+                            <th>密码</th>
+                            <td><input type="password" placeholder="密码" ng-model="hq.password" required></td>
+                        </tr>
+
+                        <tr>
+                            <th></th>
+                            <td><button type="submit">登陆</button></td>
+                        </tr>
+                    </table>
                 </form>
 
                 <div>
