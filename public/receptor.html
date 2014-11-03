@@ -79,7 +79,7 @@
                         <ul class="Users-recepting"
                             ng-show="hq.isLoggedIn && hq.userTab === 'recepting'">
                             <li ng-repeat="user in hq.users"
-                                ng-if="user.role === 'customer' && user.target !== ''"
+                                ng-if="user.role === 'customer' && user.target === hq.profile.id"
                                 ng-class="{'active': user.id === hq.profile.target}"
                                 ng-click="hq.recept(user.id)">
                                 {{ user.name }}
@@ -105,5 +105,5 @@
     <script src="/js/angular.js"></script>
     <script src="/js/app.js"></script>
     <script src="/js/socket.js"></script>
-    <script src="/js/server.controller.js"></script>
+    <script src="/js/receptor.controller.js"></script>
 </html>

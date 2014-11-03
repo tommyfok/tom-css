@@ -47,7 +47,7 @@ angular.module('HongQi')
 
   self.hasPendingUser = function () {
     for (var i = 0, l = self.users.length; i < l; i++) {
-      if (self.users[i].target === '' && self.users[i].id !== self.profile.id) {
+      if (self.users[i].target === '' && self.users[i].role !== 'manager') {
         return true;
       }
     }
@@ -109,17 +109,19 @@ angular.module('HongQi')
   });
 
   hqSocket.on('loginSuccess', $scope, function (data) {
-    self.isLoggedIn = true;
-    self.profile    = data.self;
-    self.users      = data.users;
+    self.isLoggedIn   = true;
+    self.users        = data.users;
+    self.profile      = self.getUser(data.self.id);
   });
 
   hqSocket.on('loginFail', $scope, function () {
     alert('账号或密码不正确！');
   });
 
-  hqSocket.on('userToManager', $scope, function (id) {
-    self.getUser(id).role = 'manager';
+  hqSocket.on('addManager', $scope, function (user) {
+    var current = self.getUser(user.id);
+    current.role = user.role;
+    current.name = user.name;
   });
 
   hqSocket.on('receptCustomer', $scope, function (data) {

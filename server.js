@@ -6,8 +6,12 @@ var io      = require('socket.io')(http);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, 'public/customer.html'));
+});
+
 app.get('/server', function (req, res) {
-  res.sendFile(path.join(__dirname, 'public/server.html'));
+  res.sendFile(path.join(__dirname, 'public/receptor.html'));
 });
 
 // 搞清楚io，socket的关系
@@ -21,7 +25,7 @@ app.get('/server', function (req, res) {
 // 原始数据
 var port      = Number(process.argv[2]) || 3000,
     users     = [],
-    accounts  = {
+    receptors = {
       'tang': '123456',
       'tommy': '123456',
       'woody': '123456'
@@ -39,7 +43,7 @@ function User (socket) {
 
 // 方法
 function checkLogin (name, pass) {
-  return accounts[name] === pass;
+  return receptors[name] === pass;
 }
 
 function getUser (id) {
@@ -77,7 +81,7 @@ io.on('connection', function (socket) {
       });
 
       // 给所有管理员发送用户更新通知
-      io.to('managers').emit('userToManager', user.id);
+      io.to('managers').emit('addManager', user);
     } else {
       socket.emit('loginFail');
     }
