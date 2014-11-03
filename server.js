@@ -17,10 +17,11 @@ app.get('/server', function (req, res) {
 
 // 数据库
 var mongoose = require('mongoose');
-// Confirm your connection here
+// 设置数据库链接
 mongoose.connect('mongodb://localhost:27017/css');
+// 定义数据模型
 var SocketUserSchema = new mongoose.Schema({
-      id             : String,
+      id             : {type: String, index: true},
       name           : String,
       role           : String,
       target         : String,
@@ -28,8 +29,8 @@ var SocketUserSchema = new mongoose.Schema({
       disconnectTime : Number
     }),
     MessageSchema = new mongoose.Schema({
-      from    : String,
-      to      : String,
+      from    : {type: String, index: true},
+      to      : {type: String, index: true},
       content : String,
       time    : Number
     }),
@@ -79,14 +80,18 @@ function getUser (id) {
   return null;
 }
 
-// 连接
+// 用户连接到服务器
 io.on('connection', function (socket) {
   // 创建新用户
   var user = new User(socket);
   users.push(user);
+
+  // 往数据库添加用户信息
   var UserOfDb = new SocketUserModel(user);
   UserOfDb.save(function (err, result) {
-    if (err) { console.dir(err); }
+    if (err) {
+      console.log(err);
+    }
   });
 
   // 给所有管理员发送用户更新通知
@@ -100,6 +105,17 @@ io.on('connection', function (socket) {
     if (checkLogin(data.name, data.pass)) {
       user.name = data.name;
       user.role = 'manager';
+
+      SocketUserModel.update({id: user.id}, {
+        name: user.name,
+        role: user.role
+      }, function (err, result) {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log('管理员 ' + user.name + ' 登录');
+        }
+      });
 
       // 让这个链接(socket)加入"managers"房间
       socket.join('managers');
@@ -144,13 +160,11 @@ io.on('connection', function (socket) {
       time: +new Date
     };
 
+    // 用数据库记录message
     var MsgOfDb = new MessageModel(newMsg);
-
     MsgOfDb.save(function (err, result) {
       if (err) {
         console.log(err);
-      } else {
-        console.log(result);
       }
     });
 
@@ -176,6 +190,11 @@ io.on('connection', function (socket) {
     }
   });
 
+  // 如果用户的管理员离线
+  socket.on('my manager is disconnected', function () {
+    console.log('某个管理员离线了,此用户的消息应该发送给其他在线的接线员');
+  });
+
   // web端断开连接
   socket.on('disconnect', function () {
     if (user.role === 'customer') {
@@ -187,7 +206,13 @@ io.on('connection', function (socket) {
       socket.leave('managers');
     }
 
-    SocketUserModel.update({id: user.id}, {disconnectTime: +new Date});
+    SocketUserModel.update({id: user.id}, {disconnectTime: +new Date}, function (err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log('用户 ' + user.name + ' 离线');
+      }
+    });
   });
 });
 

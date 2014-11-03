@@ -20,6 +20,13 @@ angular.module('HongQi')
     }
   };
 
+  hqSocket.on('managerDisconnect', $scope, function (uid) {
+    if (self.profile.target === uid) {
+      hqSocket.emit('my manager is disconnected');
+      self.profile.target = '';
+    }
+  });
+
   hqSocket.on('connectionSuccess', $scope, function (user) {
     self.profile = user;
   });
