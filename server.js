@@ -4,6 +4,7 @@ var path    = require('path');
 var http    = require('http').Server(app);
 var io      = require('socket.io')(http);
 
+// route config
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', function (req, res) {
@@ -13,6 +14,27 @@ app.get('/', function (req, res) {
 app.get('/server', function (req, res) {
   res.sendFile(path.join(__dirname, 'public/receptor.html'));
 });
+
+// 数据库
+var mongoose = require('mongoose');
+// Confirm your connection here
+mongoose.connect('mongodb://localhost:27017/css');
+var SocketUserSchema = new mongoose.Schema({
+      id             : String,
+      name           : String,
+      role           : String,
+      target         : String,
+      connectionTime : Number,
+      disconnectTime : Number
+    }),
+    MessageSchema = new mongoose.Schema({
+      from    : String,
+      to      : String,
+      content : String,
+      time    : Number
+    }),
+    SocketUserModel = mongoose.model('SocketUserModel', SocketUserSchema),
+    MessageModel    = mongoose.model('MessageModel', MessageSchema);
 
 // 搞清楚io，socket的关系
 // io是tmd全局的，io.emit就发送给所有的socket了
@@ -37,7 +59,9 @@ function User (socket) {
     id: socket.id,
     name: '游客' + Math.random().toString(16).substr(2),
     role: 'customer',
-    target: ''
+    target: '',
+    connectionTime: +new Date,
+    disconnectTime: -1
   };
 }
 
@@ -60,6 +84,10 @@ io.on('connection', function (socket) {
   // 创建新用户
   var user = new User(socket);
   users.push(user);
+  var UserOfDb = new SocketUserModel(user);
+  UserOfDb.save(function (err, result) {
+    if (err) { console.dir(err); }
+  });
 
   // 给所有管理员发送用户更新通知
   io.to('managers').emit('addUser', user);
@@ -115,6 +143,17 @@ io.on('connection', function (socket) {
       content: msg,
       time: +new Date
     };
+
+    var MsgOfDb = new MessageModel(newMsg);
+
+    MsgOfDb.save(function (err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(result);
+      }
+    });
+
     if (user.role === 'customer') {
       // 如果该用户是顾客
       if (user.target === '') {
@@ -147,6 +186,8 @@ io.on('connection', function (socket) {
       users.splice(users.indexOf(user), 1);
       socket.leave('managers');
     }
+
+    SocketUserModel.update({id: user.id}, {disconnectTime: +new Date});
   });
 });
 
