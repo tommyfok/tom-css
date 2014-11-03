@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "my first socket.io app",
   "dependencies": {
-    "diskdb": "^0.1.14",
     "express": "4.x",
+    "mongodb": "^1.4.19",
     "socket.io": "^1.1.0"
   }
 }
