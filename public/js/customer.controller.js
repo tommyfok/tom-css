@@ -4,7 +4,7 @@ angular.module('HongQi')
   var self   = this,
       dialog = document.getElementById('Dialogs');
 
-  self.messages   = [];
+  self.messages = [];
 
   self.submitText = function () {
     if (self.currentText) {
@@ -15,7 +15,7 @@ angular.module('HongQi')
 
   self.submitIfEnter = function (e) {
     var e = e || window.event;
-    if (e.keyCode === 13) {
+    if (e.keyCode === 13 || e.which === 13) {
       self.submitText();
     }
   };
@@ -28,6 +28,9 @@ angular.module('HongQi')
     if (self.profile.target !== msg.from) {
       self.profile.target = msg.from;
       self.messages.push(msg);
+      $timeout(function () {
+        dialog.scrollTop = dialog.scrollHeight;
+      }, 100);
     }
   });
 

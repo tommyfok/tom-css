@@ -17,6 +17,11 @@
                              ng-repeat="msg in hq.messages track by $index">
                             <p ng-bind="msg.content"></p>
                         </div>
+
+                        <div class="Dialog-item remote"
+                             ng-show="hq.profile.target === ''">
+                            <p>正在为您转接客服，请稍候。您也可以给我们留言，并且留下您的联系方式，我们将会及时与您联系，谢谢！</p>
+                        </div>
                     </div>
 
                     <form class="Dialog-form"

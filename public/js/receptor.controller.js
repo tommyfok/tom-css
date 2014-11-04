@@ -135,6 +135,9 @@ angular.module('HongQi')
     self.getUser(data.recepted).target = data.receptor;
     self.removeAllMsg(data.recepted, self.unreads);
     self.removeAllMsg(data.recepted, self.pendings);
+    $timeout(function () {
+      dialog.scrollTop = dialog.scrollHeight;
+    }, 100);
   });
 
   hqSocket.on('addMsg', function (msg) {
