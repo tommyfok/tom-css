@@ -52,7 +52,8 @@ var port      = Number(process.argv[2]) || 3000,
       'tang': '123456',
       'tommy': '123456',
       'woody': '123456'
-    };
+    },
+    cacheMsg = [];
 
 // 用户类
 function User (socket) {
@@ -80,6 +81,25 @@ function getUser (id) {
   return null;
 }
 
+function getReceptors () {
+  var list = [];
+  for (var i = 0, l = users.length; i < l; i++) {
+    if (users[i].role === 'manager') {
+      list.push(users[i]);
+    }
+  }
+  return list;
+}
+
+function cachedMsgsFromCustomer (id) {
+  cacheMsg.forEach(function (value) {
+    if (value.customer === id) {
+      return value;
+    }
+  });
+  return false;
+}
+
 // 用户连接到服务器
 io.on('connection', function (socket) {
   // 创建新用户
@@ -103,6 +123,18 @@ io.on('connection', function (socket) {
   // 管理员登陆
   socket.on('login', function (data) {
     if (checkLogin(data.name, data.pass)) {
+      // 首先，如果没有其他管理员，那么这个管理员要接收所有离线消息
+      if (getReceptors().length === 0) {
+        console.log('我是第一个登录的管理员：' + data.name);
+        cacheMsg.forEach(function (value) {
+          socket.emit('addHistoryMsgs', value);
+          console.log('发送以下数据给管理员' + data.name);
+          console.log(value);
+        });
+        console.log('发送完毕，清空缓存');
+        cacheMsg = [];
+      }
+
       user.name = data.name;
       user.role = 'manager';
 
@@ -138,8 +170,8 @@ io.on('connection', function (socket) {
       customer.target = user.id;
       user.target = targetId;
       io.to(targetId).emit('recepted', {
-        from: String(user.id),
-        to: String(user.target),
+        from: user.id,
+        to: user.target,
         content: '客服' + user.name + '为您服务',
         time: +new Date
       });
@@ -161,8 +193,7 @@ io.on('connection', function (socket) {
     };
 
     // 用数据库记录message
-    var MsgOfDb = new MessageModel(newMsg);
-    MsgOfDb.save(function (err, result) {
+    MessageModel(newMsg).save(function (err, result) {
       if (err) {
         console.log(err);
       }
@@ -170,14 +201,32 @@ io.on('connection', function (socket) {
 
     if (user.role === 'customer') {
       // 如果该用户是顾客
-      if (user.target === '') {
-        // 如果他暂未被某管理员接待
-        // 把消息发送给所有管理员
-        io.to('managers').emit('addMsg', newMsg);
+      if (getReceptors().length === 0) {
+        // 如果根本没有管理员
+        // 把数据缓存起来！
+        var cachedMsgs = cachedMsgsFromCustomer(user.id);
+        if (cachedMsgs !== false) {
+          // 已经有缓存过的数据
+          cachedMsgs.messages.push(newMsg);
+        } else {
+          // 此用户的消息没有缓存过
+          cacheMsg.push({
+            messages: [newMsg],
+            customer: user.id,
+            receptor: String(user.target)
+          });
+        }
       } else {
-        // 如果他已经被某个管理员接待了
-        // 管理员的对话窗口添加消息
-        io.to(user.target).emit('addMsg', newMsg);
+        // 如果有管理员
+        if (user.target === '') {
+          // 如果他暂未被某管理员接待
+          // 把消息发送给所有管理员
+          io.to('managers').emit('addMsg', newMsg);
+        } else {
+          // 如果他已经被某个管理员接待了
+          // 管理员的对话窗口添加消息
+          io.to(user.target).emit('addMsg', newMsg);
+        }
       }
       // 消息来源的对话窗口添加消息
       socket.emit('addMsg', newMsg);
@@ -191,8 +240,24 @@ io.on('connection', function (socket) {
   });
 
   // 如果用户的管理员离线
-  socket.on('my manager is disconnected', function () {
-    console.log('某个管理员离线了,此用户的消息应该发送给其他在线的接线员');
+  socket.on('my manager is disconnected', function (historyMsgs) {
+    if (getReceptors().length === 0) {
+      // 把消息缓存起来
+      cacheMsg.push({
+        messages: historyMsgs,
+        customer: String(user.id),
+        receptor: String(user.target)
+      });
+      console.log('管理员离线了，我要缓存以下数据：');
+      console.log(cacheMsg);
+    } else {
+      io.to('managers').emit('addHistoryMsgs', {
+        messages: historyMsgs,
+        customer: user.id,
+        receptor: String(user.target)
+      });
+      user.target = '';
+    }
   });
 
   // web端断开连接
@@ -201,7 +266,12 @@ io.on('connection', function (socket) {
       io.to('managers').emit('customerDisconnect', user.id);
       users.splice(users.indexOf(user), 1);
     } else {
-      io.to(user.target).emit('managerDisconnect', user.id);
+      io.emit('managerDisconnect', user.id);
+      users.forEach(function (item) {
+        if (item.target === user.id) {
+          item.target = '';
+        }
+      });
       users.splice(users.indexOf(user), 1);
       socket.leave('managers');
     }

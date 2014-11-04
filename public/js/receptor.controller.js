@@ -104,27 +104,31 @@ angular.module('HongQi')
     }
   };
 
-  hqSocket.on('connectionSuccess', $scope, function (user) {
+  hqSocket.on('connectionSuccess', function (user) {
     self.profile = user;
   });
 
-  hqSocket.on('loginSuccess', $scope, function (data) {
-    self.isLoggedIn   = true;
-    self.users        = data.users;
-    self.profile      = self.getUser(data.self.id);
+  hqSocket.on('loginSuccess', function (data) {
+    self.isLoggedIn = true;
+    self.users      = data.users;
+    self.profile    = self.getUser(data.self.id);
   });
 
-  hqSocket.on('loginFail', $scope, function () {
+  hqSocket.on('loginFail', function () {
     alert('账号或密码不正确！');
   });
 
-  hqSocket.on('addManager', $scope, function (user) {
+  hqSocket.on('addUser', function (user) {
+    self.users.push(user);
+  });
+
+  hqSocket.on('addManager', function (user) {
     var current = self.getUser(user.id);
     current.role = user.role;
     current.name = user.name;
   });
 
-  hqSocket.on('receptCustomer', $scope, function (data) {
+  hqSocket.on('receptCustomer', function (data) {
     if (data.receptor === self.profile.id) {
       self.profile.target = data.recepted;
     }
@@ -133,17 +137,7 @@ angular.module('HongQi')
     self.removeAllMsg(data.recepted, self.pendings);
   });
 
-  hqSocket.on('addUser', $scope, function (user) {
-    self.users.push(user);
-  });
-
-  hqSocket.on('customerDisconnect', $scope, function (id) {
-    self.users.splice(self.users.indexOf(self.getUser(id)), 1);
-    self.removeAllMsg(id);
-    self.removeAllMsg(id, self.unreads);
-  });
-
-  hqSocket.on('addMsg', $scope, function (msg) {
+  hqSocket.on('addMsg', function (msg) {
     self.messages.push(msg);
     var newMsg = self.messages[self.messages.length - 1];
     if (newMsg.to === '') {
@@ -155,5 +149,45 @@ angular.module('HongQi')
         dialog.scrollTop = dialog.scrollHeight;
       }, 100);
     }
+  });
+
+  hqSocket.on('addHistoryMsgs', function (data) {
+    data.messages.forEach(function (msg) {
+      // 如果是发给客户的消息，那么这些消息的来源改成当前接线员的ID
+      if (msg.to === data.customer) {
+        msg.from = self.profile.id;
+      }
+      // 如果是客户发过来的消息，那么这些消息的目标应该为空
+      if (msg.from === data.customer) {
+        msg.to = '';
+      }
+      // 删除多余的信息（$$hashKey）
+      msg = {
+        from: msg.from,
+        to: msg.to,
+        content: msg.content,
+        time: msg.time
+      };
+    });
+    // 把消息放入messages和pendings
+    Array.prototype.push.apply(self.messages, data.messages);
+    Array.prototype.push.apply(self.pendings, data.messages);
+  });
+
+  hqSocket.on('customerDisconnect', function (id) {
+    self.users.splice(self.users.indexOf(self.getUser(id)), 1);
+    self.removeAllMsg(id);
+    self.removeAllMsg(id, self.unreads);
+  });
+
+  hqSocket.on('managerDisconnect', function (id) {
+    self.users.splice(self.users.indexOf(self.getUser(id)), 1);
+    self.users.forEach(function (item, index) {
+      if (item.target === id) {
+        item.target = '';
+      }
+    });
+    self.removeAllMsg(id);
+    self.removeAllMsg(id, self.unreads);
   });
 });

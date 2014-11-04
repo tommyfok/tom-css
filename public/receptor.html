@@ -37,8 +37,8 @@
                         <div class="Dialogs"
                              id="Dialogs">
                             <div class="Dialog-item"
+                                 ng-repeat="msg in hq.messages track by $index"
                                  ng-class="{'remote': msg.from === hq.profile.target}"
-                                 ng-repeat="msg in hq.messages"
                                  ng-if="(msg.from === hq.profile.target) || (msg.to === hq.profile.target && msg.to !== '')">
                                 <p ng-bind="msg.content"></p>
                             </div>
@@ -114,6 +114,7 @@
         </div>
     </body>
 
+    <script src="/js/es5-shim.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/angular.js"></script>
     <script src="/js/app.js"></script>

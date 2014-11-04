@@ -20,28 +20,28 @@ angular.module('HongQi')
     }
   };
 
-  hqSocket.on('managerDisconnect', $scope, function (uid) {
-    if (self.profile.target === uid) {
-      hqSocket.emit('my manager is disconnected');
-      self.profile.target = '';
-    }
-  });
-
-  hqSocket.on('connectionSuccess', $scope, function (user) {
+  hqSocket.on('connectionSuccess', function (user) {
     self.profile = user;
   });
 
-  hqSocket.on('recepted', $scope, function (msg) {
+  hqSocket.on('recepted', function (msg) {
     if (self.profile.target !== msg.from) {
       self.profile.target = msg.from;
       self.messages.push(msg);
     }
   });
 
-  hqSocket.on('addMsg', $scope, function (msg) {
+  hqSocket.on('addMsg', function (msg) {
     self.messages.push(msg);
     $timeout(function () {
       dialog.scrollTop = dialog.scrollHeight;
     }, 100);
+  });
+
+  hqSocket.on('managerDisconnect', function (uid) {
+    if (self.profile.target === uid) {
+      hqSocket.emit('my manager is disconnected', self.messages);
+      self.profile.target = '';
+    }
   });
 });
