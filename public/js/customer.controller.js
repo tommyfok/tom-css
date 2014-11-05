@@ -8,7 +8,7 @@ angular.module('HongQi')
 
   self.submitText = function () {
     if (self.currentText) {
-      hqSocket.emit('webMsg', self.currentText);
+      hqSocket.emit('web message', self.currentText);
       self.currentText = '';
     }
   };
@@ -20,13 +20,13 @@ angular.module('HongQi')
     }
   };
 
-  hqSocket.on('connectionSuccess', function (user) {
+  hqSocket.on('connection success', function (user) {
     self.profile = user;
   });
 
-  hqSocket.on('recepted', function (msg) {
-    if (self.profile.target !== msg.from) {
-      self.profile.target = msg.from;
+  hqSocket.on('you are recepted', function (msg) {
+    if (self.profile.target !== msg.from_socket) {
+      self.profile.target = msg.from_socket;
       self.messages.push(msg);
       $timeout(function () {
         dialog.scrollTop = dialog.scrollHeight;
@@ -34,16 +34,16 @@ angular.module('HongQi')
     }
   });
 
-  hqSocket.on('addMsg', function (msg) {
+  hqSocket.on('add message', function (msg) {
     self.messages.push(msg);
     $timeout(function () {
       dialog.scrollTop = dialog.scrollHeight;
     }, 100);
   });
 
-  hqSocket.on('managerDisconnect', function (uid) {
-    if (self.profile.target === uid) {
-      hqSocket.emit('my manager is disconnected', self.messages);
+  hqSocket.on('receptor disconnect', function (socket_id) {
+    if (self.profile.target === socket_id) {
+      hqSocket.emit('my receptor is disconnected', self.messages);
       self.profile.target = '';
     }
   });

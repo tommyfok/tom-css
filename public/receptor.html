@@ -8,7 +8,7 @@
 
     <body>
         <div class="Wrapper"
-             ng-class="{'manage':  hq.users.length > 1}">
+             ng-class="{'manage':  hq.socketUsers.length > 1}">
             <div class="Wrapper-inner">
                 <form class="Login-form"
                       ng-show="!hq.isLoggedIn"
@@ -38,8 +38,8 @@
                              id="Dialogs">
                             <div class="Dialog-item"
                                  ng-repeat="msg in hq.messages track by $index"
-                                 ng-class="{'remote': msg.from === hq.profile.target}"
-                                 ng-if="(msg.from === hq.profile.target) || (msg.to === hq.profile.target && msg.to !== '')">
+                                 ng-class="{'remote': msg.from_socket === hq.profile.target}"
+                                 ng-if="(msg.from_socket === hq.profile.target) || (msg.to_socket === hq.profile.target && msg.to_socket !== '')">
                                 <p ng-bind="msg.content"></p>
                             </div>
                         </div>
@@ -53,7 +53,7 @@
                         </form>
                     </div>
 
-                    <div class="Users" ng-show="hq.users.length > 1">
+                    <div class="Users" ng-show="hq.socketUsers.length > 1">
                         <div class="User-tabs">
                             <span class="User-tab pending"
                                   ng-click="hq.userTab = 'pending'"
@@ -79,32 +79,32 @@
 
                         <ul class="Users-pending"
                             ng-show="hq.isLoggedIn && hq.userTab === 'pending'">
-                            <li ng-repeat="user in hq.users"
+                            <li ng-repeat="user in hq.socketUsers"
                                 ng-if="user.role === 'customer' && user.target === ''"
-                                ng-click="hq.recept(user.id)">
+                                ng-click="hq.recept(user._id)">
                                 {{ user.name }}
                                 <span class="unreads"
-                                      ng-show="hq.countPendings(user.id)"
-                                      ng-bind="hq.countPendings(user.id)"></span>
+                                      ng-show="hq.countPendings(user._id)"
+                                      ng-bind="hq.countPendings(user._id)"></span>
                             </li>
                         </ul>
 
                         <ul class="Users-recepting"
                             ng-show="hq.isLoggedIn && hq.userTab === 'recepting'">
-                            <li ng-repeat="user in hq.users"
-                                ng-if="user.role === 'customer' && user.target === hq.profile.id"
-                                ng-class="{'active': user.id === hq.profile.target}"
-                                ng-click="hq.recept(user.id)">
+                            <li ng-repeat="user in hq.socketUsers"
+                                ng-if="user.role === 'customer' && user.target === hq.profile._id"
+                                ng-class="{'active': user._id === hq.profile.target}"
+                                ng-click="hq.recept(user._id)">
                                 {{ user.name }}
                                 <span class="unreads"
-                                      ng-show="hq.countUnreads(user.id)"
-                                      ng-bind="hq.countUnreads(user.id)">{{ user.name }}</span>
+                                      ng-show="hq.countUnreads(user._id)"
+                                      ng-bind="hq.countUnreads(user._id)"></span>
                             </li>
                         </ul>
 
                         <ul class="Users-manager"
                             ng-show="hq.isLoggedIn && hq.userTab === 'manager'">
-                            <li ng-repeat="user in hq.users"
+                            <li ng-repeat="user in hq.socketUsers"
                                 ng-bind="user.name"
                                 ng-if="user.role === 'manager'"></li>
                         </ul>

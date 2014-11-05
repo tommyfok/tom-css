@@ -13,7 +13,7 @@
                     <div class="Dialogs"
                          id="Dialogs">
                         <div class="Dialog-item"
-                             ng-class="{'remote': msg.from !== hq.profile.id}"
+                             ng-class="{'remote': msg.from_socket !== hq.profile._id}"
                              ng-repeat="msg in hq.messages track by $index">
                             <p ng-bind="msg.content"></p>
                         </div>
