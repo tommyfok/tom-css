@@ -102,15 +102,18 @@ function SocketUser (socket) {
 }
 
 // 方法
-function isReceptor (name, pass) {
+function doLogin (name, pass) {
   var result = {
     valid : false,
+    role  : '',
     _id   : ''
   };
   receptors.forEach(function (v) {
     if (v.name === name) {
       result.valid = v.password === pass;
       result._id   = v._id;
+      result.role  = v.role;
+      result.name  = name;
     }
   });
   return result;
@@ -165,7 +168,7 @@ io.on('connection', function (socket) {
 
   // 接线员登陆
   socket.on('login', function (data) {
-    var accountInfo = isReceptor(data.name, data.pass);
+    var accountInfo = doLogin(data.name, data.pass);
     if (accountInfo.valid === true) {
       // 首先，如果没有其他接线员，那么这个接线员要接收所有离线消息
       if (getReceptors().length === 0) {
@@ -180,7 +183,7 @@ io.on('connection', function (socket) {
       }
 
       user.name = data.name;
-      user.role = 'receptor';
+      user.role = accountInfo.role;
       user.account_id = accountInfo._id;
 
       SocketUserModel.update({_id: user._id}, {
@@ -338,6 +341,13 @@ io.on('connection', function (socket) {
         console.log('用户 ' + user.name + ' 离线');
       }
     });
+  });
+
+  // 以下是系统管理员的功能
+  socket.on('add account', function (data) {
+    if (user.role === 'admin') {
+
+    }
   });
 });
 
