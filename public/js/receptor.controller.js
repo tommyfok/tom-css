@@ -133,6 +133,7 @@ angular.module('HongQi')
   };
 
   // 历史消息与离线消息相关
+  // 获取错过了的客户列表
   self.getMissedCustomers = function () {
     if(isQueryTimeValid('missed')) {
       hqSocket.emit('get missed customers', {
@@ -143,6 +144,7 @@ angular.module('HongQi')
       alert('请输入正确的日期');
     }
   };
+  // 获取历史用户列表
   self.getHistoryCustomers = function () {
     if(isQueryTimeValid('history')) {
       hqSocket.emit('get history customers', {
