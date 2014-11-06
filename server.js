@@ -101,6 +101,25 @@ function SocketUser (socket) {
   };
 }
 
+// 消息类
+function Message (fromUser, toUser, msg) {
+  if (!toUser) {
+    var toUser = {
+      _id  : fromUser.target,
+      name : ''
+    };
+  }
+
+  return {
+    from_socket : fromUser._id,
+    to_socket   : toUser._id || '',
+    from_name   : fromUser.name || '',
+    to_name     : toUser.name || '',
+    content     : msg,
+    create_time : +new Date
+  };
+}
+
 // 方法
 function doLogin (name, pass) {
   var result = {
@@ -108,6 +127,7 @@ function doLogin (name, pass) {
     role  : '',
     _id   : ''
   };
+
   receptors.forEach(function (v) {
     if (v.name === name) {
       result.valid = v.password === pass;
@@ -116,15 +136,21 @@ function doLogin (name, pass) {
       result.name  = name;
     }
   });
+
   return result;
 }
 
 function getUser (socket_id) {
+  if (!socket_id) {
+    return null;
+  }
+
   for (var i = 0, l = socketUsers.length; i < l; i++) {
     if (socketUsers[i]._id === socket_id) {
       return socketUsers[i];
     }
   }
+
   return null;
 }
 
@@ -150,7 +176,7 @@ function cachedMsgsFromCustomer (id) {
 // 用户连接到服务器
 io.on('connection', function (socket) {
   // 创建新用户
-  var user = new SocketUser(socket);
+  var user = SocketUser(socket);
   socketUsers.push(user);
 
   // 往数据库添加用户信息
@@ -219,14 +245,18 @@ io.on('connection', function (socket) {
       var customer = getUser(targetId);
       customer.target = user._id;
       user.target = customer._id;
-      io.to(targetId).emit('you are recepted', {
-        from_socket  : user._id,
-        to_socket    : customer._id,
-        from_name    : user.name,
-        to_name      : customer.name,
-        content      : '客服' + user.name + '为您服务',
-        create_time  : +new Date
-      });
+      io.to(targetId).emit('you are recepted', Message(user, customer, '客服' + user.name + '为您服务！'));
+
+      // 把此用户发过来的消息的目的socket改成user._id，目标用户改成user.name
+      MessageModel
+        .update({from_socket: customer._id, to_socket: ''}, {
+          to_socket : user._id,
+          to_name   : user.name
+        }, function (err, result) {
+          if (err) {
+            console.log(err);
+          }
+        });
 
       io.to('receptors').emit('someone is recepted', {
         receptor: user._id,
@@ -237,18 +267,7 @@ io.on('connection', function (socket) {
 
   // 处理从web发来的消息
   socket.on('web message', function (msg) {
-    if (user.target !== '') {
-      var targetUser = getUser(user.target);
-    }
-
-    var newMsg = {
-      from_socket : user._id,
-      to_socket   : user.target,
-      from_name   : user.name,
-      to_name     : targetUser ? targetUser.name : '',
-      content     : msg,
-      create_time : +new Date
-    };
+    var newMsg = Message(user, getUser(user.target), msg);
 
     // 用数据库记录message
     MessageModel(newMsg).save(function (err, result) {
@@ -343,14 +362,97 @@ io.on('connection', function (socket) {
     });
   });
 
-  // 以下是系统管理员的功能
-  socket.on('add account', function (data) {
-    if (user.role === 'admin') {
+  // 查看曾发送过消息的离线客户的列表
+  // 返回用户名称列表
+  // 离线消息的特征：to_socket === ''
+  socket.on('get missed customers', function (range) {
+    if (user.role === 'receptor') {
+      // 在此可以看到group by在mongodb中的实现方法
+      MessageModel
+        .aggregate()
+        .match({
+          to_socket: '',
+          create_time: {$gte: range.start, $lte: range.end}
+        })
+        .group({
+          _id: '$from_socket',
+          name: {$first: '$from_name'}
+        })
+        .exec(function (err, data) {
+          if (err) {
+            console.log(err);
+          } else {
+            socket.emit('show missed customers', data);
+          }
+        });
+    }
+  });
 
+  // 根据某个离线用户名称查看咨询记录
+  // 注册用户有固定的username而没有固定的socket_id，所以根据username来查询更合理
+  // 同上，离线消息的特征是 to_socket === ''
+  socket.on('get missed messages of someone', function (username) {
+    if (user.role === 'receptor') {
+      MessageModel
+      .find({
+        to_socket: '',
+        from_name: username
+      })
+      .sort({create_time: 'asc'})
+      .exec(function (err, data) {
+        if (err) {
+          console.log(err);
+        } else {
+          socket.emit('show missed messages of someone', data);
+        }
+      });
+    }
+  });
+
+  // 获取曾经与我通过话的用户列表
+  // 返回用户名称列表
+  // 消息特征：to_name === user.name || from_name === user.name
+  socket.on('get history customers', function (range) {
+    if (user.role === 'receptor') {
+      MessageModel
+        .aggregate()
+        .match({
+          $or: [{to_name: user.name}, {from_name: user.name}],
+          create_time: {$gte: range.start, $lte: range.end}
+        })
+        .group({
+          _id: '$from_name'
+        })
+        .exec(function (err, data) {
+          if (err) {
+            console.log(err);
+          } else {
+            socket.emit('show history customers', data);
+          }
+        });
+    }
+  });
+
+  // 根据某个用户名称查看历史纪录
+  socket.on('get history messages of someone', function (username) {
+    if (user.role === 'receptor') {
+      MessageModel
+      .find({$or: [
+        {from_name: username},
+        {to_name: username}
+      ]})
+      .sort({create_time: 'asc'})
+      .exec(function (err, data) {
+        if (err) {
+          console.log(err);
+        } else {
+          socket.emit('show history messages of someone', data);
+        }
+      });
     }
   });
 });
 
 http.listen(port, function () {
-  console.log('listening on *:' + port);
+  console.log('服务器正在监听端口' + port + '的请求');
 });

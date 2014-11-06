@@ -3,12 +3,17 @@ angular.module('HongQi')
 .controller('HongQiCtrl', function ($scope, $timeout, hqSocket) {
   var self   = this,
       dialog = document.getElementById('Dialogs');
-  self.messages      = [];
-  self.socketUsers         = [];
-  self.profile       = {};
-  self.userTab       = 'pending';
-  self.unreads       = [];
-  self.pendings      = [];
+
+  self.messages         = [];
+  self.socketUsers      = [];
+  self.profile          = {};
+  self.userTab          = 'pending';
+  self.unreads          = [];
+  self.pendings         = [];
+  self.missedCustomers  = [];
+  self.missedMessages   = [];
+  self.historyCustomers = [];
+  self.historyMessages  = [];
 
   // Define Private Methods.
   function getUser (socket_id) {
@@ -53,7 +58,19 @@ angular.module('HongQi')
     var group = group || self.messages;
     removeMsgFrom(socket_id, group);
     removeMsgTo(socket_id, group);
-  };
+  }
+
+  function DialogToBottom () {
+    $timeout(function () {
+      dialog.scrollTop = dialog.scrollHeight;
+    }, 100);
+  }
+
+  function isQueryTimeValid (type) {
+    self[type + 'UsersStartDayTimestamp'] = +Date.parse(self[type + 'UsersStartDay']);
+    self[type + 'UsersEndDayTimestamp'] = +Date.parse(self[type + 'UsersEndDay']) + (24 * 3600 * 1000);
+    return self[type + 'UsersEndDayTimestamp'] > self[type + 'UsersStartDayTimestamp'];
+  }
 
   // Define Public Methods.
   self.hasPendingUser = function () {
@@ -86,7 +103,7 @@ angular.module('HongQi')
   };
 
   self.submitText = function () {
-    if (self.currentText) {
+    if (self.currentText && self.userTab === 'recepting') {
       hqSocket.emit('web message', self.currentText);
       self.currentText = '';
     }
@@ -114,6 +131,61 @@ angular.module('HongQi')
       self.password = '';
     }
   };
+
+  // 历史消息与离线消息相关
+  self.getMissedCustomers = function () {
+    if(isQueryTimeValid('missed')) {
+      hqSocket.emit('get missed customers', {
+        start: self.missedUsersStartDayTimestamp,
+        end: self.missedUsersEndDayTimestamp
+      });
+    } else {
+      alert('请输入正确的日期');
+    }
+  };
+  self.getHistoryCustomers = function () {
+    if(isQueryTimeValid('history')) {
+      hqSocket.emit('get history customers', {
+        start: self.historyUsersStartDayTimestamp,
+        end: self.historyUsersEndDayTimestamp
+      });
+    } else {
+      alert('请输入正确的日期');
+    }
+  };
+
+  // 根据用户名获取离线消息
+  self.getMissedMessages = function (name) {
+    hqSocket.emit('get missed messages of someone', name);
+    self.currentMissedCustomer = name;
+  };
+  // 根据用户名获取历史消息
+  self.getHistoryMessages = function (name) {
+    hqSocket.emit('get history messages of someone', name);
+    self.currentHistoryCustomer = name;
+  };
+
+  // 查看离线游客列表
+  hqSocket.on('show missed customers', function (customers) {
+    // do something with data
+    self.missedCustomers = customers;
+  });
+  // 查看某个离线客户的消息
+  hqSocket.on('show missed messages of someone', function (messages) {
+    self.missedMessages = messages;
+    DialogToBottom();
+  });
+
+  // 查看历史用户列表
+  hqSocket.on('show history customers', function (customers) {
+    // do something with data
+    self.historyCustomers = customers;
+  });
+  // 查看某个历史客户的消息
+  hqSocket.on('show history messages of someone', function (messages) {
+    self.historyMessages = messages;
+    DialogToBottom();
+  });
 
   // Define socket events.
   hqSocket.on('connection success', function (user) {
@@ -148,9 +220,7 @@ angular.module('HongQi')
     getUser(data.recepted).target = data.receptor;
     removeAllMsg(data.recepted, self.unreads);
     removeAllMsg(data.recepted, self.pendings);
-    $timeout(function () {
-      dialog.scrollTop = dialog.scrollHeight;
-    }, 100);
+    DialogToBottom();
   });
 
   hqSocket.on('add message', function (msg) {
@@ -161,9 +231,7 @@ angular.module('HongQi')
     } else if (newMsg.to_socket === self.profile._id && self.profile.target !== newMsg.from_socket) {
       self.unreads.push(newMsg);
     } else {
-      $timeout(function () {
-        dialog.scrollTop = dialog.scrollHeight;
-      }, 100);
+      DialogToBottom();
     }
   });
 

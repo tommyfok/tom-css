@@ -7,8 +7,7 @@
     </head>
 
     <body>
-        <div class="Wrapper"
-             ng-class="{'manage':  hq.socketUsers.length > 1}">
+        <div class="Wrapper" ng-class="{'manage': hq.isLoggedIn}">
             <div class="Wrapper-inner">
                 <form class="Login-form"
                       ng-show="!hq.isLoggedIn"
@@ -31,16 +30,32 @@
                     </table>
                 </form>
 
-                <div>
-                    <div class="Dialog-box"
-                         ng-show="hq.isLoggedIn">
+                <div ng-show="hq.isLoggedIn">
+                    <div class="Dialog-box">
                         <div class="Dialogs"
                              id="Dialogs">
-                            <div class="Dialog-item"
-                                 ng-repeat="msg in hq.messages track by $index"
-                                 ng-class="{'remote': msg.from_socket === hq.profile.target}"
-                                 ng-if="(msg.from_socket === hq.profile.target) || (msg.to_socket === hq.profile.target && msg.to_socket !== '')">
-                                <p ng-bind="msg.content"></p>
+                            <div ng-show="hq.userTab === 'pending' || hq.userTab === 'recepting'">
+                                <div class="Dialog-item"
+                                     ng-repeat="msg in hq.messages track by $index"
+                                     ng-class="{'remote': msg.from_socket === hq.profile.target}"
+                                     ng-if="(msg.from_socket === hq.profile.target) || (msg.to_socket === hq.profile.target && msg.to_socket !== '')">
+                                    <p ng-bind="msg.content"></p>
+                                </div>
+                            </div>
+
+                            <div ng-show="hq.userTab === 'missed'">
+                                <div class="Dialog-item remote"
+                                     ng-repeat="msg in hq.missedMessages track by $index">
+                                    <p ng-bind="msg.content"></p>
+                                </div>
+                            </div>
+
+                            <div ng-show="hq.userTab === 'history'">
+                                <div class="Dialog-item"
+                                     ng-repeat="msg in hq.historyMessages track by $index"
+                                     ng-class="{'remote': (msg.from_name.indexOf('游客') === 0)}">
+                                    <p ng-bind="msg.content"></p>
+                                </div>
                             </div>
                         </div>
 
@@ -53,7 +68,7 @@
                         </form>
                     </div>
 
-                    <div class="Users" ng-show="hq.socketUsers.length > 1">
+                    <div class="Users">
                         <div class="User-tabs">
                             <span class="User-tab pending"
                                   ng-click="hq.userTab = 'pending'"
@@ -71,14 +86,17 @@
                                 处理中
                             </span>
 
-                            <span class="User-tab manager"
-                                  ng-click="hq.userTab = 'manager'"
-                                  ng-class="{active: hq.userTab === 'manager'}">管理员</span>
+                            <span class="User-tab history"
+                                  ng-click="hq.userTab = 'history'"
+                                  ng-class="{active: hq.userTab === 'history'}">历史</span>
 
+                            <span class="User-tab missed"
+                                  ng-click="hq.userTab = 'missed'"
+                                  ng-class="{active: hq.userTab === 'missed'}">离线咨询</span>
                         </div>
 
                         <ul class="Users-pending"
-                            ng-show="hq.isLoggedIn && hq.userTab === 'pending'">
+                            ng-show="hq.userTab === 'pending'">
                             <li ng-repeat="user in hq.socketUsers"
                                 ng-if="user.role === 'customer' && user.target === ''"
                                 ng-click="hq.recept(user._id)">
@@ -90,7 +108,7 @@
                         </ul>
 
                         <ul class="Users-recepting"
-                            ng-show="hq.isLoggedIn && hq.userTab === 'recepting'">
+                            ng-show="hq.userTab === 'recepting'">
                             <li ng-repeat="user in hq.socketUsers"
                                 ng-if="user.role === 'customer' && user.target === hq.profile._id"
                                 ng-class="{'active': user._id === hq.profile.target}"
@@ -102,11 +120,45 @@
                             </li>
                         </ul>
 
-                        <ul class="Users-manager"
-                            ng-show="hq.isLoggedIn && hq.userTab === 'manager'">
-                            <li ng-repeat="user in hq.socketUsers"
+                        <ul class="Users-history"
+                            ng-show="hq.userTab === 'history'">
+                            <li>
+                                <form ng-submit="hq.getHistoryCustomers()">
+                                    请选择起始日期：
+                                    <input type="date"
+                                           ng-model="hq.historyUsersStartDay">
+                                    请选择结束日期：
+                                    <input type="date"
+                                           ng-model="hq.historyUsersEndDay">
+                                    <button type="submit" class="submitTimeRange">查询</button>
+                                </form>
+                            </li>
+
+                            <li ng-repeat="user in hq.historyCustomers"
+                                ng-bind="user._id"
+                                ng-hide="user._id === hq.profile.name"
+                                ng-click="hq.getHistoryMessages(user._id)"
+                                ng-class="{active: hq.currentHistoryCustomer === user._id}"></li>
+                        </ul>
+
+                        <ul class="Users-missed"
+                            ng-show="hq.userTab === 'missed'">
+                            <li>
+                                <form ng-submit="hq.getMissedCustomers()">
+                                    请选择起始日期：
+                                    <input type="date"
+                                           ng-model="hq.missedUsersStartDay">
+                                    请选择结束日期：
+                                    <input type="date"
+                                           ng-model="hq.missedUsersEndDay">
+                                    <button type="submit" class="submitTimeRange">查询</button>
+                                </form>
+                            </li>
+
+                            <li ng-repeat="user in hq.missedCustomers"
                                 ng-bind="user.name"
-                                ng-if="user.role === 'receptor'"></li>
+                                ng-click="hq.getMissedMessages(user.name)"
+                                ng-class="{active: hq.currentMissedCustomer === user.name}"></li>
                         </ul>
                     </div>
                 </div>

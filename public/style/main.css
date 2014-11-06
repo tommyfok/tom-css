@@ -175,10 +175,11 @@ body {
 }
 
 .User-tab {
-    width: 33.33%;
+    width: 25%;
     display: inline-block;
     float: left;
     height: 40px;
+    overflow: hidden;
     line-height: 40px;
     font-size: 12px;
     text-align: center;
@@ -221,6 +222,37 @@ body {
     -webkit-transition: all .3s ease-out;
     transition: all .3s ease-out;
     position: relative;
+}
+
+.Users ul li input {
+    display: block;
+    width: 100%;
+    padding: 6px;
+    margin: 0;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.Users ul li .submitTimeRange {
+    background: #fff;
+    color: #f60;
+    text-align: center;
+    margin-top: 6px;
+    padding: 6px 12px;
+    border: 1px solid #f60;
+    border-radius: 5px;
+    cursor: pointer;
+    box-sizing: border-box;
+    width: 30%;
+    margin-left: 70%;
+}
+
+.Users ul li .submitTimeRange:hover,
+.Users ul li .submitTimeRange:focus,
+.Users ul li .submitTimeRange:active {
+    background: #f60;
+    color: #fff;
+    outline: none;
 }
 
 .Users ul li .unreads {
