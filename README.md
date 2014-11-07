@@ -22,6 +22,7 @@ You should have these libraries installed globally.
 - cd to the project folder
 - start: `forever start server.js 8000`
 - restart: `forever restart server.js`
+- stop: `forever stop server.js`
 
 ## TODO
 - frontend management with gulp and bower
