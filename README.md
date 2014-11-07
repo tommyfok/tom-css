@@ -5,13 +5,13 @@
 - See [Client Side Demo](http://www.corvy.net:8000) 
 - See [Server Side Demo](http://www.corvy.net:8000/server) and login with `{username: 'tommy', password: '123456'}`
 
-## Requirement
+## Requirements
 You should have these libraries installed globally.
 - Mongodb
 - Node
 - Forever (a node module)
 
-## Install
+## Installation
 - cd to the project folder and run `npm install` to install packages
 - Initial your database:
   - `mongo` (if it comes to an error, run `mongod` or `sudo mongod` manually)
@@ -27,4 +27,4 @@ You should have these libraries installed globally.
 - frontend management with gulp and bower
 - user management
 - data and message analysis
-- Fix bugs...
+- Fix bugs
