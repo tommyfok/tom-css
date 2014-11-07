@@ -1,6 +1,6 @@
-angular.module('HongQi')
+angular.module('TomCss')
 
-.controller('HongQiCtrl', function ($scope, $timeout, hqSocket) {
+.controller('ServerSideController', function ($scope, $timeout, tomSocket) {
   var self   = this,
       dialog = document.getElementById('Dialogs');
 
@@ -102,7 +102,7 @@ angular.module('HongQi')
 
   self.submitText = function () {
     if (self.currentText && self.userTab === 'recepting') {
-      hqSocket.emit('web message', self.currentText);
+      tomSocket.emit('web message', self.currentText);
       self.currentText = '';
     }
   };
@@ -115,13 +115,13 @@ angular.module('HongQi')
   };
 
   self.recept = function (socket_id) {
-    hqSocket.emit('i will recept someone', socket_id);
+    tomSocket.emit('i will recept someone', socket_id);
     self.userTab = 'recepting';
   };
 
   self.login = function () {
     if (self.username && self.password) {
-      hqSocket.emit('login', {
+      tomSocket.emit('login', {
         name: self.username,
         pass: self.password
       });
@@ -136,7 +136,7 @@ angular.module('HongQi')
         self.createReceptorTips = '';
       }, 3000);
     } else {
-      hqSocket.emit('create receptor', {
+      tomSocket.emit('create receptor', {
         name: self.newReceptorName,
         pass: self.newReceptorPass
       });
@@ -151,7 +151,7 @@ angular.module('HongQi')
         self.changePassTips = '';
       }, 3000);
     } else {
-      hqSocket.emit('change password', {
+      tomSocket.emit('change password', {
         oldPass: self.myPassOld,
         newPass: self.myPassNew
       });
@@ -163,7 +163,7 @@ angular.module('HongQi')
   // 获取错过了的客户列表
   self.getMissedCustomers = function () {
     if(isQueryTimeValid('missed')) {
-      hqSocket.emit('get missed customers', {
+      tomSocket.emit('get missed customers', {
         start: self.missedUsersStartDayTimestamp,
         end: self.missedUsersEndDayTimestamp
       });
@@ -174,7 +174,7 @@ angular.module('HongQi')
   // 获取历史用户列表
   self.getHistoryCustomers = function () {
     if(isQueryTimeValid('history')) {
-      hqSocket.emit('get history customers', {
+      tomSocket.emit('get history customers', {
         start: self.historyUsersStartDayTimestamp,
         end: self.historyUsersEndDayTimestamp
       });
@@ -185,51 +185,51 @@ angular.module('HongQi')
 
   // 根据用户名获取离线消息
   self.getMissedMessages = function (name) {
-    hqSocket.emit('get missed messages of someone', name);
+    tomSocket.emit('get missed messages of someone', name);
     self.currentMissedCustomer = name;
   };
   // 根据用户名获取历史消息
   self.getHistoryMessages = function (name) {
-    hqSocket.emit('get history messages of someone', name);
+    tomSocket.emit('get history messages of someone', name);
     self.currentHistoryCustomer = name;
   };
 
   // 查看离线游客列表
-  hqSocket.on('show missed customers', function (customers) {
+  tomSocket.on('show missed customers', function (customers) {
     // do something with data
     self.missedCustomers = customers;
   });
   // 查看某个离线客户的消息
-  hqSocket.on('show missed messages of someone', function (messages) {
+  tomSocket.on('show missed messages of someone', function (messages) {
     self.missedMessages = messages;
     DialogToBottom();
   });
 
   // 查看历史用户列表
-  hqSocket.on('show history customers', function (customers) {
+  tomSocket.on('show history customers', function (customers) {
     // do something with data
     self.historyCustomers = customers;
   });
   // 查看某个历史客户的消息
-  hqSocket.on('show history messages of someone', function (messages) {
+  tomSocket.on('show history messages of someone', function (messages) {
     self.historyMessages = messages;
     DialogToBottom();
   });
 
   // Define socket events.
-  hqSocket.on('connection success', function (user) {
+  tomSocket.on('connection success', function (user) {
     self.profile = user;
     self.socketUsers.push(user);
   });
 
-  hqSocket.on('login success', function (data) {
+  tomSocket.on('login success', function (data) {
     self.isLoggedIn  = true;
     self.socketUsers = data.socketUsers;
     self.profile     = getUser(data.self._id);
     self.receptors   = data.receptors;
   });
 
-  hqSocket.on('create receptor response', function (data) {
+  tomSocket.on('create receptor response', function (data) {
     if (!data.status) {
       self.createReceptorTips = '添加成功！';
       $timeout(function () {
@@ -250,11 +250,11 @@ angular.module('HongQi')
     }
   });
 
-  hqSocket.on('update receptor list', function (data) {
+  tomSocket.on('update receptor list', function (data) {
     self.receptors = data;
   });
 
-  hqSocket.on('change password response', function (data) {
+  tomSocket.on('change password response', function (data) {
     if (data.err) {
       self.changePassTips = data.err;
     } else {
@@ -272,21 +272,21 @@ angular.module('HongQi')
     }, 3000);
   });
 
-  hqSocket.on('login fail', function () {
+  tomSocket.on('login fail', function () {
     alert('账号或密码不正确！');
   });
 
-  hqSocket.on('add user', function (user) {
+  tomSocket.on('add user', function (user) {
     self.socketUsers.push(user);
   });
 
-  hqSocket.on('add receptor', function (user) {
+  tomSocket.on('add receptor', function (user) {
     var receptor = getUser(user._id);
     receptor.role = user.role;
     receptor.name = user.name;
   });
 
-  hqSocket.on('someone is recepted', function (data) {
+  tomSocket.on('someone is recepted', function (data) {
     if (data.receptor === self.profile._id) {
       self.profile.target = data.recepted;
     }
@@ -296,7 +296,7 @@ angular.module('HongQi')
     DialogToBottom();
   });
 
-  hqSocket.on('add message', function (msg) {
+  tomSocket.on('add message', function (msg) {
     self.messages.push(msg);
     var newMsg = self.messages[self.messages.length - 1];
     if (newMsg.to_socket === '') {
@@ -308,7 +308,7 @@ angular.module('HongQi')
     }
   });
 
-  hqSocket.on('add history messages', function (data) {
+  tomSocket.on('add history messages', function (data) {
     data.messages.forEach(function (msg) {
       // 如果是发给客户的消息，那么这些消息的来源改成当前接线员的ID
       if (msg.to_socket === data.customer) {
@@ -333,13 +333,13 @@ angular.module('HongQi')
     Array.prototype.push.apply(self.pendings, data.messages);
   });
 
-  hqSocket.on('customer disconnect', function (socket_id) {
+  tomSocket.on('customer disconnect', function (socket_id) {
     self.socketUsers.splice(self.socketUsers.indexOf(getUser(socket_id)), 1);
     removeAllMsg(socket_id);
     removeAllMsg(socket_id, self.unreads);
   });
 
-  hqSocket.on('receptor disconnect', function (socket_id) {
+  tomSocket.on('receptor disconnect', function (socket_id) {
     self.socketUsers.splice(self.socketUsers.indexOf(getUser(socket_id)), 1);
     self.socketUsers.forEach(function (item, index) {
       if (item.target === socket_id) {

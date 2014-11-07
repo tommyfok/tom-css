@@ -1,6 +1,6 @@
-angular.module('Socket', [])
+angular.module('TomSocket', [])
 
-.factory('hqSocket', function ($rootScope) {
+.factory('tomSocket', function ($rootScope) {
   // factory method will return the same object to all injectors
   // while service mode will return an entirly `new` object
   function newIo () {

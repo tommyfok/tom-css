@@ -1,3 +1,3 @@
-angular.module('HongQi', [
-  'Socket'
+angular.module('TomCss', [
+  'TomSocket'
 ]);

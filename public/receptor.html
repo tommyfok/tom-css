@@ -1,26 +1,26 @@
 <!doctype html>
-<html ng-app="HongQi"
-      ng-controller="HongQiCtrl as hq">
+<html ng-app="TomCss"
+      ng-controller="ServerSideController as ssc">
     <head>
-        <title>宏琪客服系统（服务端）</title>
+        <title>客服系统（服务端）</title>
         <link rel="stylesheet" type="text/css" href="/style/main.css">
     </head>
 
     <body>
-        <div class="Wrapper" ng-class="{'manage': hq.isLoggedIn}">
+        <div class="Wrapper" ng-class="{'manage': ssc.isLoggedIn}">
             <div class="Wrapper-inner">
                 <form class="Login-form"
-                      ng-show="!hq.isLoggedIn"
-                      ng-submit="hq.login()">
+                      ng-show="!ssc.isLoggedIn"
+                      ng-submit="ssc.login()">
                     <table border="0" cellpadding="0" cellspacing="0">
                         <tr>
                             <th width="20%">帐号</th>
-                            <td width="80%"><input type="text" placeholder="账号" ng-model="hq.username" required></td>
+                            <td width="80%"><input type="text" placeholder="账号" ng-model="ssc.username" required></td>
                         </tr>
 
                         <tr>
                             <th>密码</th>
-                            <td><input type="password" placeholder="密码" ng-model="hq.password" required></td>
+                            <td><input type="password" placeholder="密码" ng-model="ssc.password" required></td>
                         </tr>
 
                         <tr>
@@ -30,29 +30,29 @@
                     </table>
                 </form>
 
-                <div ng-show="hq.isLoggedIn">
+                <div ng-show="ssc.isLoggedIn">
                     <div class="Dialog-box">
                         <div class="Dialogs"
                              id="Dialogs">
-                            <div ng-show="hq.userTab === 'pending' || hq.userTab === 'recepting'">
+                            <div ng-show="ssc.userTab === 'pending' || ssc.userTab === 'recepting'">
                                 <div class="Dialog-item"
-                                     ng-repeat="msg in hq.messages track by $index"
-                                     ng-class="{'remote': msg.from_socket === hq.profile.target}"
-                                     ng-if="(msg.from_socket === hq.profile.target) || (msg.to_socket === hq.profile.target && msg.to_socket !== '')">
+                                     ng-repeat="msg in ssc.messages track by $index"
+                                     ng-class="{'remote': msg.from_socket === ssc.profile.target}"
+                                     ng-if="(msg.from_socket === ssc.profile.target) || (msg.to_socket === ssc.profile.target && msg.to_socket !== '')">
                                     <p ng-bind="msg.content"></p>
                                 </div>
                             </div>
 
-                            <div ng-show="hq.userTab === 'missed'">
+                            <div ng-show="ssc.userTab === 'missed'">
                                 <div class="Dialog-item remote"
-                                     ng-repeat="msg in hq.missedMessages track by $index">
+                                     ng-repeat="msg in ssc.missedMessages track by $index">
                                     <p ng-bind="msg.content"></p>
                                 </div>
                             </div>
 
-                            <div ng-show="hq.userTab === 'history'">
+                            <div ng-show="ssc.userTab === 'history'">
                                 <div class="Dialog-item"
-                                     ng-repeat="msg in hq.historyMessages track by $index"
+                                     ng-repeat="msg in ssc.historyMessages track by $index"
                                      ng-class="{'remote': (msg.from_name.indexOf('游客') === 0)}">
                                     <p ng-bind="msg.content"></p>
                                 </div>
@@ -60,9 +60,9 @@
                         </div>
 
                         <form class="Dialog-form"
-                              ng-submit="hq.submitText()">
-                            <textarea ng-model="hq.currentText"
-                                      ng-keydown="hq.submitIfEnter()"
+                              ng-submit="ssc.submitText()">
+                            <textarea ng-model="ssc.currentText"
+                                      ng-keydown="ssc.submitIfEnter()"
                                       required></textarea>
                             <button type="submit">发送</button>
                         </form>
@@ -71,57 +71,57 @@
                     <div class="Sidebar">
                         <div class="Sidebar-tabs">
                             <span class="Sidebar-tab Sidebar-tab-users"
-                                  ng-click="hq.sideTab = 'users'"
-                                  ng-class="{active: hq.sideTab === 'users'}">&#xe602;</span>
+                                  ng-click="ssc.sideTab = 'users'"
+                                  ng-class="{active: ssc.sideTab === 'users'}">&#xe602;</span>
 
                             <span class="Sidebar-tab Sidebar-tab-config"
-                                  ng-click="hq.sideTab = 'config'"
-                                  ng-class="{active: hq.sideTab === 'config'}">&#xe601;</span>
+                                  ng-click="ssc.sideTab = 'config'"
+                                  ng-class="{active: ssc.sideTab === 'config'}">&#xe601;</span>
                         </div>
 
                         <div class="Users"
-                             ng-show="hq.sideTab === 'config'">
+                             ng-show="ssc.sideTab === 'config'">
                             <div class="User-tabs-3">
                                 <span class="User-tab"
-                                      ng-click="hq.configTab = 'list'"
-                                      ng-class="{active: hq.configTab === 'list'}">接线员列表</span>
+                                      ng-click="ssc.configTab = 'list'"
+                                      ng-class="{active: ssc.configTab === 'list'}">接线员列表</span>
 
                                 <span class="User-tab"
-                                      ng-click="hq.configTab = 'add'"
-                                      ng-class="{active: hq.configTab === 'add'}">添加接线员</span>
+                                      ng-click="ssc.configTab = 'add'"
+                                      ng-class="{active: ssc.configTab === 'add'}">添加接线员</span>
 
                                 <span class="User-tab"
-                                      ng-click="hq.configTab = 'personal'"
-                                      ng-class="{active: hq.configTab === 'personal'}">修改密码</span>
+                                      ng-click="ssc.configTab = 'personal'"
+                                      ng-class="{active: ssc.configTab === 'personal'}">修改密码</span>
                             </div>
 
                             <ul class="User-list"
-                                ng-show="hq.configTab === 'list'">
-                                <li ng-repeat="user in hq.receptors"
+                                ng-show="ssc.configTab === 'list'">
+                                <li ng-repeat="user in ssc.receptors"
                                     ng-if="user.role === 'receptor'">
                                     {{ user.name }}
                                 </li>
                             </ul>
 
                             <ul class="User-list"
-                                ng-show="hq.configTab === 'add'">
+                                ng-show="ssc.configTab === 'add'">
                                 <li>
-                                    <form ng-submit="hq.createReceptor()">
+                                    <form ng-submit="ssc.createReceptor()">
                                         帐号：
                                         <input type="text"
-                                               ng-model="hq.newReceptorName"
+                                               ng-model="ssc.newReceptorName"
                                                required>
                                         密码：
                                         <input type="password"
-                                               ng-model="hq.newReceptorPass"
+                                               ng-model="ssc.newReceptorPass"
                                                required>
                                         确认密码：
                                         <input type="password"
-                                               ng-model="hq.newReceptorPassConfirm"
+                                               ng-model="ssc.newReceptorPassConfirm"
                                                required>
                                         <span class="submitTips"
-                                              ng-show="hq.createReceptorTips.length"
-                                              ng-bind="hq.createReceptorTips"></span>
+                                              ng-show="ssc.createReceptorTips.length"
+                                              ng-bind="ssc.createReceptorTips"></span>
                                         <button type="submit"
                                                 class="submitInLi">添加</button>
                                     </form>
@@ -129,24 +129,24 @@
                             </ul>
 
                             <ul class="User-list"
-                                ng-show="hq.configTab === 'personal'">
+                                ng-show="ssc.configTab === 'personal'">
                                 <li>
-                                    <form ng-submit="hq.changePass()">
+                                    <form ng-submit="ssc.changePass()">
                                         初始密码：
                                         <input type="password"
-                                               ng-model="hq.myPassOld"
+                                               ng-model="ssc.myPassOld"
                                                required>
                                         新密码：
                                         <input type="password"
-                                               ng-model="hq.myPassNew"
+                                               ng-model="ssc.myPassNew"
                                                required>
                                         确认新密码：
                                         <input type="password"
-                                               ng-model="hq.myPassNewConfirm"
+                                               ng-model="ssc.myPassNewConfirm"
                                                required>
                                         <span class="submitTips"
-                                              ng-show="hq.changePassTips.length"
-                                              ng-bind="hq.changePassTips"></span>
+                                              ng-show="ssc.changePassTips.length"
+                                              ng-bind="ssc.changePassTips"></span>
                                         <button type="submit"
                                                 class="submitInLi">修改</button>
                                     </form>
@@ -155,97 +155,97 @@
                         </div>
 
                         <div class="Users"
-                             ng-show="hq.sideTab === 'users'">
+                             ng-show="ssc.sideTab === 'users'">
                             <div class="User-tabs-4">
                                 <span class="User-tab"
-                                      ng-click="hq.userTab = 'pending'"
-                                      ng-class="{active: hq.userTab === 'pending'}">
+                                      ng-click="ssc.userTab = 'pending'"
+                                      ng-class="{active: ssc.userTab === 'pending'}">
                                     <span class="unreads"
-                                          ng-show="hq.hasPendingUser()"></span>
+                                          ng-show="ssc.hasPendingUser()"></span>
                                     未处理
                                 </span>
 
                                 <span class="User-tab"
-                                      ng-click="hq.userTab = 'recepting'"
-                                      ng-class="{active: hq.userTab === 'recepting'}">
+                                      ng-click="ssc.userTab = 'recepting'"
+                                      ng-class="{active: ssc.userTab === 'recepting'}">
                                     <span class="unreads"
-                                          ng-show="hq.unreads.length"></span>
+                                          ng-show="ssc.unreads.length"></span>
                                     处理中
                                 </span>
 
                                 <span class="User-tab"
-                                      ng-click="hq.userTab = 'history'"
-                                      ng-class="{active: hq.userTab === 'history'}">历史</span>
+                                      ng-click="ssc.userTab = 'history'"
+                                      ng-class="{active: ssc.userTab === 'history'}">历史</span>
 
                                 <span class="User-tab"
-                                      ng-click="hq.userTab = 'missed'"
-                                      ng-class="{active: hq.userTab === 'missed'}">离线咨询</span>
+                                      ng-click="ssc.userTab = 'missed'"
+                                      ng-class="{active: ssc.userTab === 'missed'}">离线咨询</span>
                             </div>
 
                             <ul class="User-list"
-                                ng-show="hq.userTab === 'pending'">
-                                <li ng-repeat="user in hq.socketUsers"
+                                ng-show="ssc.userTab === 'pending'">
+                                <li ng-repeat="user in ssc.socketUsers"
                                     ng-if="user.role === 'customer' && user.target === ''"
-                                    ng-click="hq.recept(user._id)">
+                                    ng-click="ssc.recept(user._id)">
                                     {{ user.name }}
                                     <span class="unreads"
-                                          ng-show="hq.countPendings(user._id)"
-                                          ng-bind="hq.countPendings(user._id)"></span>
+                                          ng-show="ssc.countPendings(user._id)"
+                                          ng-bind="ssc.countPendings(user._id)"></span>
                                 </li>
                             </ul>
 
                             <ul class="User-list"
-                                ng-show="hq.userTab === 'recepting'">
-                                <li ng-repeat="user in hq.socketUsers"
-                                    ng-if="user.role === 'customer' && user.target === hq.profile._id"
-                                    ng-class="{'active': user._id === hq.profile.target}"
-                                    ng-click="hq.recept(user._id)">
+                                ng-show="ssc.userTab === 'recepting'">
+                                <li ng-repeat="user in ssc.socketUsers"
+                                    ng-if="user.role === 'customer' && user.target === ssc.profile._id"
+                                    ng-class="{'active': user._id === ssc.profile.target}"
+                                    ng-click="ssc.recept(user._id)">
                                     {{ user.name }}
                                     <span class="unreads"
-                                          ng-show="hq.countUnreads(user._id)"
-                                          ng-bind="hq.countUnreads(user._id)"></span>
+                                          ng-show="ssc.countUnreads(user._id)"
+                                          ng-bind="ssc.countUnreads(user._id)"></span>
                                 </li>
                             </ul>
 
                             <ul class="User-list"
-                                ng-show="hq.userTab === 'history'">
+                                ng-show="ssc.userTab === 'history'">
                                 <li>
-                                    <form ng-submit="hq.getHistoryCustomers()">
+                                    <form ng-submit="ssc.getHistoryCustomers()">
                                         请选择起始日期：
                                         <input type="date"
-                                               ng-model="hq.historyUsersStartDay">
+                                               ng-model="ssc.historyUsersStartDay">
                                         请选择结束日期：
                                         <input type="date"
-                                               ng-model="hq.historyUsersEndDay">
+                                               ng-model="ssc.historyUsersEndDay">
                                         <button type="submit" class="submitInLi">查询</button>
                                     </form>
                                 </li>
 
-                                <li ng-repeat="user in hq.historyCustomers"
+                                <li ng-repeat="user in ssc.historyCustomers"
                                     ng-bind="user._id"
-                                    ng-hide="user._id === hq.profile.name"
-                                    ng-click="hq.getHistoryMessages(user._id)"
-                                    ng-class="{active: hq.currentHistoryCustomer === user._id}"></li>
+                                    ng-hide="user._id === ssc.profile.name"
+                                    ng-click="ssc.getHistoryMessages(user._id)"
+                                    ng-class="{active: ssc.currentHistoryCustomer === user._id}"></li>
                             </ul>
 
                             <ul class="User-list"
-                                ng-show="hq.userTab === 'missed'">
+                                ng-show="ssc.userTab === 'missed'">
                                 <li>
-                                    <form ng-submit="hq.getMissedCustomers()">
+                                    <form ng-submit="ssc.getMissedCustomers()">
                                         请选择起始日期：
                                         <input type="date"
-                                               ng-model="hq.missedUsersStartDay">
+                                               ng-model="ssc.missedUsersStartDay">
                                         请选择结束日期：
                                         <input type="date"
-                                               ng-model="hq.missedUsersEndDay">
+                                               ng-model="ssc.missedUsersEndDay">
                                         <button type="submit" class="submitInLi">查询</button>
                                     </form>
                                 </li>
 
-                                <li ng-repeat="user in hq.missedCustomers"
+                                <li ng-repeat="user in ssc.missedCustomers"
                                     ng-bind="user.name"
-                                    ng-click="hq.getMissedMessages(user.name)"
-                                    ng-class="{active: hq.currentMissedCustomer === user.name}"></li>
+                                    ng-click="ssc.getMissedMessages(user.name)"
+                                    ng-class="{active: ssc.currentMissedCustomer === user.name}"></li>
                             </ul>
                         </div>
                     </div>

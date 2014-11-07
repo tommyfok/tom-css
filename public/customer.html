@@ -1,8 +1,8 @@
 <!doctype html>
-<html ng-app="HongQi"
-      ng-controller="HongQiCtrl as hq">
+<html ng-app="TomCss"
+      ng-controller="ClientSideController as csc">
     <head>
-        <title>宏琪客服</title>
+        <title>客服</title>
         <link rel="stylesheet" type="text/css" href="/style/main.css">
     </head>
 
@@ -13,21 +13,21 @@
                     <div class="Dialogs"
                          id="Dialogs">
                         <div class="Dialog-item"
-                             ng-class="{'remote': msg.from_socket !== hq.profile._id}"
-                             ng-repeat="msg in hq.messages track by $index">
+                             ng-class="{'remote': msg.from_socket !== csc.profile._id}"
+                             ng-repeat="msg in csc.messages track by $index">
                             <p ng-bind="msg.content"></p>
                         </div>
 
                         <div class="Dialog-item remote"
-                             ng-show="hq.profile.target === ''">
+                             ng-show="csc.profile.target === ''">
                             <p>正在为您转接客服，请稍候。您也可以给我们留言，并且留下您的联系方式，我们将会及时与您联系，谢谢！</p>
                         </div>
                     </div>
 
                     <form class="Dialog-form"
-                          ng-submit="hq.submitText()">
-                        <textarea ng-model="hq.currentText"
-                                  ng-keydown="hq.submitIfEnter()"
+                          ng-submit="csc.submitText()">
+                        <textarea ng-model="csc.currentText"
+                                  ng-keydown="csc.submitIfEnter()"
                                   required></textarea>
                         <button type="submit">发送</button>
                     </form>
