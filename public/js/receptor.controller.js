@@ -264,10 +264,12 @@ angular.module('HongQi')
     } else {
       if (data.modified > 0) {
         self.changePassTips = '成功修改密码！';
+        self.myPassNew = '';
+        self.myPassNewConfirm = '';
       } else {
         self.changePassTips = '原密码有误，请重新输入';
-        self.myPassOld = '';
       }
+      self.myPassOld = '';
     }
     $timeout(function () {
       self.changePassTips = '';
