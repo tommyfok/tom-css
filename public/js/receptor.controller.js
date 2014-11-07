@@ -243,7 +243,11 @@ angular.module('HongQi')
       self.newReceptorPass = '';
       self.newReceptorPassConfirm = '';
     } else {
-      self.createReceptorTips = data.status;
+      if (data.status.code === 11000) {
+        self.createReceptorTips = '此用户已经存在';
+      } else {
+        self.createReceptorTips = '添加失败，请联系管理员Tommy';
+      }
       $timeout(function () {
         self.createReceptorTips = '';
       }, 3000);

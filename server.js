@@ -165,10 +165,12 @@ function getOnlineReceptors () {
 function receptorsForClient() {
   var arr = [];
   receptors.forEach(function (item) {
-    arr.push({
-      name: item.name,
-      role: item.role
-    });
+    if (item) {
+      arr.push({
+        name: item.name,
+        role: item.role
+      });
+    }
   });
   return arr;
 }
@@ -346,9 +348,13 @@ io.on('connection', function (socket) {
           status: err ? err : '',
           receptor: result
         });
-        receptors.push(result);
-        io.to('receptors').emit('update receptor list', receptorsForClient());
-      })
+
+        // 创建成功才会有_id
+        if (result && ('_id' in result)) {
+          receptors.push(result);
+          io.to('receptors').emit('update receptor list', receptorsForClient());
+        }
+      });
     }
   });
 
