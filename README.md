@@ -1,5 +1,5 @@
 # tom-css
-> This is a customer service system using nodejs, mongodb and angularjs
+> This is a realtime customer service system using nodejs, socket.io, mongodb and angularjs etc.
 
 - Support IE8+ and all major browsers
 - See [Client Side Demo](http://www.corvy.net:8000) 
@@ -24,5 +24,7 @@ You should have these libraries installed globally.
 - restart: `forever restart server.js`
 
 ## TODO
-- Frontend management with gulp and bower
+- frontend management with gulp and bower
+- user management
+- data and message analysis
 - Fix bugs...
