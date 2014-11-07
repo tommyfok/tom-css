@@ -26,11 +26,7 @@ angular.module('HongQi')
       }
     }
     if (result.length > 0) {
-      if (result.length === 1) {
-        return result[0];
-      } else {
-        return result;
-      }
+      return result.length === 1 ? result[0] : result;
     } else {
       return null;
     }
