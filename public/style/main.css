@@ -1,9 +1,19 @@
+@font-face {
+    font-family: 'tomfont';
+    src: url('http://at.alicdn.com/t/font_1415327742_9408967.eot');
+    src: url('http://at.alicdn.com/t/font_1415327742_9408967.eot?#iefix') format('embedded-opentype'),
+    url('http://at.alicdn.com/t/font_1415327742_9408967.woff') format('woff'),
+    url('http://at.alicdn.com/t/font_1415327742_9408967.ttf') format('truetype'),
+    url('http://at.alicdn.com/t/font_1415327742_9408967.svg#iconfont') format('svg');
+}
+
 html,
 body {
     margin: 0;
     padding: 0;
     height: 100%;
     background: #f6f6f6;
+    font-family: Microsoft Yahei, Verdana, tomfont;
 }
 
 .Wrapper {
@@ -152,7 +162,7 @@ body {
     cursor: pointer;
 }
 
-.Users {
+.Sidebar {
     position: fixed;
     top: 0;
     right: 0;
@@ -161,10 +171,38 @@ body {
     background: #eee;
     color: grey;
     box-shadow: 0 0 30px rgba(0, 0, 0, .3);
+}
+
+.Sidebar-tabs {
+    position: absolute;
+    left: -60px;
+    top: 0;
+    width: 50px;
+}
+
+.Sidebar-tab {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    cursor: pointer;
+    color: grey;
+    text-align: center;
+}
+
+.Sidebar-tab-users { font-size: 28px; }
+.Sidebar-tab-config { font-size: 32px; }
+
+.Sidebar-tab.active {
+    color: #f60;
+}
+
+.Users {
     padding-top: 41px;
 }
 
-.User-tabs {
+.User-tabs-3,
+.User-tabs-4 {
     background: white;
     height: 40px;
     border-bottom: 1px solid #ddd;
@@ -175,7 +213,6 @@ body {
 }
 
 .User-tab {
-    width: 25%;
     display: inline-block;
     float: left;
     height: 40px;
@@ -186,6 +223,9 @@ body {
     cursor: pointer;
     position: relative;
 }
+
+.User-tabs-3 .User-tab { width: 33.33%; }
+.User-tabs-4 .User-tab { width: 25%; }
 
 .User-tab .unreads {
     position: absolute;
@@ -203,13 +243,13 @@ body {
     color: white;
 }
 
-.Users ul {
+.User-list {
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.Users ul li {
+.User-list li {
     display: block;
     font-size: 12px;
     line-height: 1.5em;
@@ -224,7 +264,7 @@ body {
     position: relative;
 }
 
-.Users ul li input {
+.User-list li input {
     display: block;
     width: 100%;
     padding: 6px;
@@ -233,7 +273,16 @@ body {
     outline: none;
 }
 
-.Users ul li .submitTimeRange {
+.submitTips {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 6px 12px;
+    margin: 6px 0;
+    color: red;
+}
+
+.submitInLi {
     background: #fff;
     color: #f60;
     text-align: center;
@@ -247,15 +296,15 @@ body {
     margin-left: 70%;
 }
 
-.Users ul li .submitTimeRange:hover,
-.Users ul li .submitTimeRange:focus,
-.Users ul li .submitTimeRange:active {
+.submitInLi:hover,
+.submitInLi:focus,
+.submitInLi:active {
     background: #f60;
     color: #fff;
     outline: none;
 }
 
-.Users ul li .unreads {
+.User-list li .unreads {
     position: absolute;
     width: 8px;
     height: 18px;
@@ -272,16 +321,16 @@ body {
     background: white;
 }
 
-.Users ul li:hover .unreads {
+.User-list li:hover .unreads {
     color: white;
     background: #f60;
 }
 
-.Users ul li:hover {
+.User-list li:hover {
     color: #f60;
 }
 
-.Users ul li.active {
+.User-list li.active {
     color: #f60;
     border-color: #f60;
 }

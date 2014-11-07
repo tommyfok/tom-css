@@ -3,20 +3,18 @@ var app     = express();
 var path    = require('path');
 var http    = require('http').Server(app);
 var io      = require('socket.io')(http);
+var md5     = require('blueimp-md5').md5;
 
-// route config
+// serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
+// custom routes
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'public/customer.html'));
 });
 
 app.get('/server', function (req, res) {
   res.sendFile(path.join(__dirname, 'public/receptor.html'));
-});
-
-app.get('/admin', function (req, res) {
-  res.end('这个管理后台，迟早都得做。。。');
 });
 
 // 数据库
@@ -130,7 +128,7 @@ function doLogin (name, pass) {
 
   receptors.forEach(function (v) {
     if (v.name === name) {
-      result.valid = v.password === pass;
+      result.valid = v.password === md5(pass);
       result._id   = v._id;
       result.role  = v.role;
       result.name  = name;
@@ -154,7 +152,7 @@ function getUser (socket_id) {
   return null;
 }
 
-function getReceptors () {
+function getOnlineReceptors () {
   var list = [];
   for (var i = 0, l = socketUsers.length; i < l; i++) {
     if (socketUsers[i].role === 'receptor') {
@@ -162,6 +160,17 @@ function getReceptors () {
     }
   }
   return list;
+}
+
+function receptorsForClient() {
+  var arr = [];
+  receptors.forEach(function (item) {
+    arr.push({
+      name: item.name,
+      role: item.role
+    });
+  });
+  return arr;
 }
 
 function cachedMsgsFromCustomer (id) {
@@ -197,7 +206,7 @@ io.on('connection', function (socket) {
     var accountInfo = doLogin(data.name, data.pass);
     if (accountInfo.valid === true) {
       // 首先，如果没有其他接线员，那么这个接线员要接收所有离线消息
-      if (getReceptors().length === 0) {
+      if (getOnlineReceptors().length === 0) {
         console.log('我是第一个登录的接线员：' + data.name);
         cacheMsg.forEach(function (value) {
           socket.emit('add history messages', value);
@@ -208,11 +217,15 @@ io.on('connection', function (socket) {
         cacheMsg = [];
       }
 
+      // 更新内存中socketUsers的信息
       user.name = data.name;
       user.role = accountInfo.role;
       user.account_id = accountInfo._id;
 
-      SocketUserModel.update({_id: user._id}, {
+      // 更新数据库中socketUsers的信息
+      SocketUserModel.update({
+        _id: user._id
+      }, {
         name       : user.name,
         role       : user.role,
         account_id : user.account_id
@@ -227,10 +240,10 @@ io.on('connection', function (socket) {
       // 让这个链接(socket)加入"receptors"房间
       socket.join('receptors');
       socket.emit('login success', {
-        self: user,
-        socketUsers: socketUsers
+        self        : user,
+        socketUsers : socketUsers,
+        receptors   : receptorsForClient()
       });
-      console.log(socketUsers);
 
       // 给所有接线员发送用户更新通知
       io.to('receptors').emit('add receptor', user);
@@ -249,9 +262,14 @@ io.on('connection', function (socket) {
 
       // 把此用户发过来的消息的目的socket改成user._id，目标用户改成user.name
       MessageModel
-        .update({from_socket: customer._id, to_socket: ''}, {
+        .update({
+          from_socket: customer._id,
+          to_socket: ''
+        }, {
           to_socket : user._id,
           to_name   : user.name
+        }, {
+          multi: true
         }, function (err, result) {
           if (err) {
             console.log(err);
@@ -278,7 +296,7 @@ io.on('connection', function (socket) {
 
     if (user.role === 'customer') {
       // 如果该用户是顾客
-      if (getReceptors().length === 0) {
+      if (getOnlineReceptors().length === 0) {
         // 如果根本没有接线员
         // 把数据缓存起来！
         var cachedMsgs = cachedMsgsFromCustomer(user._id);
@@ -316,9 +334,53 @@ io.on('connection', function (socket) {
     }
   });
 
+  // 添加接线员帐号
+  socket.on('create receptor', function (data) {
+    if (user.role === 'receptor') {
+      AccountModel({
+        name: data.name,
+        password: md5(data.pass),
+        role: 'receptor'
+      }).save(function (err, result) {
+        socket.emit('create receptor response', {
+          status: err ? err : '',
+          receptor: result
+        });
+        receptors.push(result);
+        io.to('receptors').emit('update receptor list', receptorsForClient());
+      })
+    }
+  });
+
+  // 修改密码
+  socket.on('change password', function (data) {
+    if (user.role === 'receptor') {
+      AccountModel.update({
+        name: user.name,
+        password: md5(data.oldPass)
+      }, {
+        password: md5(data.newPass)
+      }, function (err, result) {
+        if (result) {
+          // 更新内存中的密码
+          receptors.forEach(function (item) {
+            if (item.name === user.name) {
+              item.password = md5(data.newPass);
+            }
+          });
+        }
+
+        socket.emit('change password response', {
+          err: err,
+          modified: result
+        });
+      });
+    }
+  });
+
   // 如果用户的接线员离线
   socket.on('my receptor is disconnected', function (historyMsgs) {
-    if (getReceptors().length === 0) {
+    if (getOnlineReceptors().length === 0) {
       // 把消息缓存起来
       cacheMsg.push({
         messages: historyMsgs,
@@ -353,7 +415,11 @@ io.on('connection', function (socket) {
       socket.leave('receptors');
     }
 
-    SocketUserModel.update({id: user._id}, {disconnect_time: +new Date}, function (err, result) {
+    SocketUserModel.update({
+      id: user._id
+    }, {
+      disconnect_time: +new Date
+    }, function (err, result) {
       if (err) {
         console.log(err);
       } else {

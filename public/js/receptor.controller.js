@@ -7,7 +7,9 @@ angular.module('HongQi')
   self.messages         = [];
   self.socketUsers      = [];
   self.profile          = {};
+  self.sideTab          = 'users';
   self.userTab          = 'pending';
+  self.configTab        = 'list';
   self.unreads          = [];
   self.pendings         = [];
   self.missedCustomers  = [];
@@ -127,8 +129,37 @@ angular.module('HongQi')
         name: self.username,
         pass: self.password
       });
-      self.username = '';
       self.password = '';
+    }
+  };
+
+  self.createReceptor = function () {
+    if (self.newReceptorPass !== self.newReceptorPassConfirm) {
+      self.createReceptorTips = '您两次输入的密码不符';
+      $timeout(function () {
+        self.createReceptorTips = '';
+      }, 3000);
+    } else {
+      hqSocket.emit('create receptor', {
+        name: self.newReceptorName,
+        pass: self.newReceptorPass
+      });
+      self.createReceptorTips = '正在创建接线员，请稍候';
+    }
+  };
+
+  self.changePass = function () {
+    if (self.myPassNew !== self.myPassNewConfirm) {
+      self.changePassTips = '您两次输入的密码不符';
+      $timeout(function () {
+        self.changePassTips = '';
+      }, 3000);
+    } else {
+      hqSocket.emit('change password', {
+        oldPass: self.myPassOld,
+        newPass: self.myPassNew
+      });
+      self.changePassTips = '正在修改密码，请稍候';
     }
   };
 
@@ -199,6 +230,44 @@ angular.module('HongQi')
     self.isLoggedIn  = true;
     self.socketUsers = data.socketUsers;
     self.profile     = getUser(data.self._id);
+    self.receptors   = data.receptors;
+  });
+
+  hqSocket.on('create receptor response', function (data) {
+    if (!data.status) {
+      self.createReceptorTips = '添加成功！';
+      $timeout(function () {
+        self.createReceptorTips = '';
+      }, 3000);
+      self.newReceptorName = '';
+      self.newReceptorPass = '';
+      self.newReceptorPassConfirm = '';
+    } else {
+      self.createReceptorTips = data.status;
+      $timeout(function () {
+        self.createReceptorTips = '';
+      }, 3000);
+    }
+  });
+
+  hqSocket.on('update receptor list', function (data) {
+    self.receptors = data;
+  });
+
+  hqSocket.on('change password response', function (data) {
+    if (data.err) {
+      self.changePassTips = data.err;
+    } else {
+      if (data.modified > 0) {
+        self.changePassTips = '成功修改密码！';
+      } else {
+        self.changePassTips = '原密码有误，请重新输入';
+        self.myPassOld = '';
+      }
+    }
+    $timeout(function () {
+      self.changePassTips = '';
+    }, 3000);
   });
 
   hqSocket.on('login fail', function () {
@@ -210,9 +279,9 @@ angular.module('HongQi')
   });
 
   hqSocket.on('add receptor', function (user) {
-    var current = getUser(user._id);
-    current.role = user.role;
-    current.name = user.name;
+    var receptor = getUser(user._id);
+    receptor.role = user.role;
+    receptor.name = user.name;
   });
 
   hqSocket.on('someone is recepted', function (data) {
@@ -235,6 +304,10 @@ angular.module('HongQi')
     } else {
       DialogToBottom();
     }
+  });
+
+  hqSocket.on('receptor created', function (data) {
+    console.log(data);
   });
 
   hqSocket.on('add history messages', function (data) {

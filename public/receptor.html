@@ -68,98 +68,186 @@
                         </form>
                     </div>
 
-                    <div class="Users">
-                        <div class="User-tabs">
-                            <span class="User-tab pending"
-                                  ng-click="hq.userTab = 'pending'"
-                                  ng-class="{active: hq.userTab === 'pending'}">
-                                <span class="unreads"
-                                      ng-show="hq.hasPendingUser()"></span>
-                                未处理
-                            </span>
+                    <div class="Sidebar">
+                        <div class="Sidebar-tabs">
+                            <span class="Sidebar-tab Sidebar-tab-users"
+                                  ng-click="hq.sideTab = 'users'"
+                                  ng-class="{active: hq.sideTab === 'users'}">&#xe602;</span>
 
-                            <span class="User-tab recepting"
-                                  ng-click="hq.userTab = 'recepting'"
-                                  ng-class="{active: hq.userTab === 'recepting'}">
-                                <span class="unreads"
-                                      ng-show="hq.unreads.length"></span>
-                                处理中
-                            </span>
-
-                            <span class="User-tab history"
-                                  ng-click="hq.userTab = 'history'"
-                                  ng-class="{active: hq.userTab === 'history'}">历史</span>
-
-                            <span class="User-tab missed"
-                                  ng-click="hq.userTab = 'missed'"
-                                  ng-class="{active: hq.userTab === 'missed'}">离线咨询</span>
+                            <span class="Sidebar-tab Sidebar-tab-config"
+                                  ng-click="hq.sideTab = 'config'"
+                                  ng-class="{active: hq.sideTab === 'config'}">&#xe601;</span>
                         </div>
 
-                        <ul class="Users-pending"
-                            ng-show="hq.userTab === 'pending'">
-                            <li ng-repeat="user in hq.socketUsers"
-                                ng-if="user.role === 'customer' && user.target === ''"
-                                ng-click="hq.recept(user._id)">
-                                {{ user.name }}
-                                <span class="unreads"
-                                      ng-show="hq.countPendings(user._id)"
-                                      ng-bind="hq.countPendings(user._id)"></span>
-                            </li>
-                        </ul>
+                        <div class="Users"
+                             ng-show="hq.sideTab === 'config'">
+                            <div class="User-tabs-3">
+                                <span class="User-tab"
+                                      ng-click="hq.configTab = 'list'"
+                                      ng-class="{active: hq.configTab === 'list'}">接线员列表</span>
 
-                        <ul class="Users-recepting"
-                            ng-show="hq.userTab === 'recepting'">
-                            <li ng-repeat="user in hq.socketUsers"
-                                ng-if="user.role === 'customer' && user.target === hq.profile._id"
-                                ng-class="{'active': user._id === hq.profile.target}"
-                                ng-click="hq.recept(user._id)">
-                                {{ user.name }}
-                                <span class="unreads"
-                                      ng-show="hq.countUnreads(user._id)"
-                                      ng-bind="hq.countUnreads(user._id)"></span>
-                            </li>
-                        </ul>
+                                <span class="User-tab"
+                                      ng-click="hq.configTab = 'add'"
+                                      ng-class="{active: hq.configTab === 'add'}">添加接线员</span>
 
-                        <ul class="Users-history"
-                            ng-show="hq.userTab === 'history'">
-                            <li>
-                                <form ng-submit="hq.getHistoryCustomers()">
-                                    请选择起始日期：
-                                    <input type="date"
-                                           ng-model="hq.historyUsersStartDay">
-                                    请选择结束日期：
-                                    <input type="date"
-                                           ng-model="hq.historyUsersEndDay">
-                                    <button type="submit" class="submitTimeRange">查询</button>
-                                </form>
-                            </li>
+                                <span class="User-tab"
+                                      ng-click="hq.configTab = 'personal'"
+                                      ng-class="{active: hq.configTab === 'personal'}">修改密码</span>
+                            </div>
 
-                            <li ng-repeat="user in hq.historyCustomers"
-                                ng-bind="user._id"
-                                ng-hide="user._id === hq.profile.name"
-                                ng-click="hq.getHistoryMessages(user._id)"
-                                ng-class="{active: hq.currentHistoryCustomer === user._id}"></li>
-                        </ul>
+                            <ul class="User-list"
+                                ng-show="hq.configTab === 'list'">
+                                <li ng-repeat="user in hq.receptors"
+                                    ng-if="user.role === 'receptor'">
+                                    {{ user.name }}
+                                </li>
+                            </ul>
 
-                        <ul class="Users-missed"
-                            ng-show="hq.userTab === 'missed'">
-                            <li>
-                                <form ng-submit="hq.getMissedCustomers()">
-                                    请选择起始日期：
-                                    <input type="date"
-                                           ng-model="hq.missedUsersStartDay">
-                                    请选择结束日期：
-                                    <input type="date"
-                                           ng-model="hq.missedUsersEndDay">
-                                    <button type="submit" class="submitTimeRange">查询</button>
-                                </form>
-                            </li>
+                            <ul class="User-list"
+                                ng-show="hq.configTab === 'add'">
+                                <li>
+                                    <form ng-submit="hq.createReceptor()">
+                                        帐号：
+                                        <input type="text"
+                                               ng-model="hq.newReceptorName"
+                                               required>
+                                        密码：
+                                        <input type="password"
+                                               ng-model="hq.newReceptorPass"
+                                               required>
+                                        确认密码：
+                                        <input type="password"
+                                               ng-model="hq.newReceptorPassConfirm"
+                                               required>
+                                        <span class="submitTips"
+                                              ng-show="hq.createReceptorTips.length"
+                                              ng-bind="hq.createReceptorTips"></span>
+                                        <button type="submit"
+                                                class="submitInLi">添加</button>
+                                    </form>
+                                </li>
+                            </ul>
 
-                            <li ng-repeat="user in hq.missedCustomers"
-                                ng-bind="user.name"
-                                ng-click="hq.getMissedMessages(user.name)"
-                                ng-class="{active: hq.currentMissedCustomer === user.name}"></li>
-                        </ul>
+                            <ul class="User-list"
+                                ng-show="hq.configTab === 'personal'">
+                                <li>
+                                    <form ng-submit="hq.changePass()">
+                                        初始密码：
+                                        <input type="password"
+                                               ng-model="hq.myPassOld"
+                                               required>
+                                        新密码：
+                                        <input type="password"
+                                               ng-model="hq.myPassNew"
+                                               required>
+                                        确认新密码：
+                                        <input type="password"
+                                               ng-model="hq.myPassNewConfirm"
+                                               required>
+                                        <span class="submitTips"
+                                              ng-show="hq.changePassTips.length"
+                                              ng-bind="hq.changePassTips"></span>
+                                        <button type="submit"
+                                                class="submitInLi">修改</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="Users"
+                             ng-show="hq.sideTab === 'users'">
+                            <div class="User-tabs-4">
+                                <span class="User-tab"
+                                      ng-click="hq.userTab = 'pending'"
+                                      ng-class="{active: hq.userTab === 'pending'}">
+                                    <span class="unreads"
+                                          ng-show="hq.hasPendingUser()"></span>
+                                    未处理
+                                </span>
+
+                                <span class="User-tab"
+                                      ng-click="hq.userTab = 'recepting'"
+                                      ng-class="{active: hq.userTab === 'recepting'}">
+                                    <span class="unreads"
+                                          ng-show="hq.unreads.length"></span>
+                                    处理中
+                                </span>
+
+                                <span class="User-tab"
+                                      ng-click="hq.userTab = 'history'"
+                                      ng-class="{active: hq.userTab === 'history'}">历史</span>
+
+                                <span class="User-tab"
+                                      ng-click="hq.userTab = 'missed'"
+                                      ng-class="{active: hq.userTab === 'missed'}">离线咨询</span>
+                            </div>
+
+                            <ul class="User-list"
+                                ng-show="hq.userTab === 'pending'">
+                                <li ng-repeat="user in hq.socketUsers"
+                                    ng-if="user.role === 'customer' && user.target === ''"
+                                    ng-click="hq.recept(user._id)">
+                                    {{ user.name }}
+                                    <span class="unreads"
+                                          ng-show="hq.countPendings(user._id)"
+                                          ng-bind="hq.countPendings(user._id)"></span>
+                                </li>
+                            </ul>
+
+                            <ul class="User-list"
+                                ng-show="hq.userTab === 'recepting'">
+                                <li ng-repeat="user in hq.socketUsers"
+                                    ng-if="user.role === 'customer' && user.target === hq.profile._id"
+                                    ng-class="{'active': user._id === hq.profile.target}"
+                                    ng-click="hq.recept(user._id)">
+                                    {{ user.name }}
+                                    <span class="unreads"
+                                          ng-show="hq.countUnreads(user._id)"
+                                          ng-bind="hq.countUnreads(user._id)"></span>
+                                </li>
+                            </ul>
+
+                            <ul class="User-list"
+                                ng-show="hq.userTab === 'history'">
+                                <li>
+                                    <form ng-submit="hq.getHistoryCustomers()">
+                                        请选择起始日期：
+                                        <input type="date"
+                                               ng-model="hq.historyUsersStartDay">
+                                        请选择结束日期：
+                                        <input type="date"
+                                               ng-model="hq.historyUsersEndDay">
+                                        <button type="submit" class="submitInLi">查询</button>
+                                    </form>
+                                </li>
+
+                                <li ng-repeat="user in hq.historyCustomers"
+                                    ng-bind="user._id"
+                                    ng-hide="user._id === hq.profile.name"
+                                    ng-click="hq.getHistoryMessages(user._id)"
+                                    ng-class="{active: hq.currentHistoryCustomer === user._id}"></li>
+                            </ul>
+
+                            <ul class="User-list"
+                                ng-show="hq.userTab === 'missed'">
+                                <li>
+                                    <form ng-submit="hq.getMissedCustomers()">
+                                        请选择起始日期：
+                                        <input type="date"
+                                               ng-model="hq.missedUsersStartDay">
+                                        请选择结束日期：
+                                        <input type="date"
+                                               ng-model="hq.missedUsersEndDay">
+                                        <button type="submit" class="submitInLi">查询</button>
+                                    </form>
+                                </li>
+
+                                <li ng-repeat="user in hq.missedCustomers"
+                                    ng-bind="user.name"
+                                    ng-click="hq.getMissedMessages(user.name)"
+                                    ng-class="{active: hq.currentMissedCustomer === user.name}"></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
