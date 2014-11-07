@@ -310,10 +310,6 @@ angular.module('HongQi')
     }
   });
 
-  hqSocket.on('receptor created', function (data) {
-    console.log(data);
-  });
-
   hqSocket.on('add history messages', function (data) {
     data.messages.forEach(function (msg) {
       // 如果是发给客户的消息，那么这些消息的来源改成当前接线员的ID
