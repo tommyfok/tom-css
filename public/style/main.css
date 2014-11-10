@@ -1,10 +1,10 @@
 @font-face {
     font-family: 'tomfont';
-    src: url('http://at.alicdn.com/t/font_1415582473_2976768.eot');
-    src: url('http://at.alicdn.com/t/font_1415582473_2976768.eot?#iefix') format('embedded-opentype'),
-    url('http://at.alicdn.com/t/font_1415582473_2976768.woff') format('woff'),
-    url('http://at.alicdn.com/t/font_1415582473_2976768.ttf') format('truetype'),
-    url('http://at.alicdn.com/t/font_1415582473_2976768.svg#iconfont') format('svg');
+    src: url('http://at.alicdn.com/t/font_1415584712_004677.eot');
+    src: url('http://at.alicdn.com/t/font_1415584712_004677.eot?#iefix') format('embedded-opentype'),
+    url('http://at.alicdn.com/t/font_1415584712_004677.woff') format('woff'),
+    url('http://at.alicdn.com/t/font_1415584712_004677.ttf') format('truetype'),
+    url('http://at.alicdn.com/t/font_1415584712_004677.svg#iconfont') format('svg');
 }
 
 html,
@@ -33,6 +33,9 @@ body {
     display: table-cell;
     vertical-align: middle;
 }
+
+.loginAndShow { display: none; }
+.loginAndShow.isLoggedIn { display: block; }
 
 .Login-form {
     width: 500px;

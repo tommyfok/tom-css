@@ -27,13 +27,14 @@
                             <th></th>
                             <td>
                                 <button type="submit" ng-if="!ssc.loginInProcess">登陆</button>
-                                <button type="submit" disabled ng-if="ssc.loginInProcess">&#xe603;</button>
+                                <span ng-if="ssc.loginInProcess">&#xe605;</span>
                             </td>
                         </tr>
                     </table>
                 </form>
 
-                <div ng-show="ssc.isLoggedIn">
+                <div class="loginAndShow"
+                     ng-class="{isLoggedIn: ssc.isLoggedIn}">
                     <div class="Dialog-box">
                         <div class="Dialogs"
                              id="Dialogs">
