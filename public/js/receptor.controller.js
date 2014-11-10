@@ -286,7 +286,8 @@ angular.module('TomCss')
   });
 
   tomSocket.on('login fail', function () {
-    alert('账号或密码不正确！');
+    alert('帐号或密码不正确！');
+    self.loginInProcess = false;
   });
 
   tomSocket.on('add user', function (user) {
