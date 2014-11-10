@@ -17,6 +17,8 @@ angular.module('TomCss')
   self.historyCustomers = [];
   self.historyMessages  = [];
 
+  var tipsTimer;
+
   // Define Private Methods.
   function getUser (socket_id) {
     var result = [];
@@ -120,19 +122,20 @@ angular.module('TomCss')
   };
 
   self.login = function () {
-    if (self.username && self.password) {
+    if (self.username && self.password && !self.loginInProcess) {
       tomSocket.emit('login', {
         name: self.username,
         pass: self.password
       });
       self.password = '';
+      self.loginInProcess = true;
     }
   };
 
   self.createReceptor = function () {
     if (self.newReceptorPass !== self.newReceptorPassConfirm) {
       self.createReceptorTips = '您两次输入的密码不符';
-      $timeout(function () {
+      tipsTimer = $timeout(function () {
         self.createReceptorTips = '';
       }, 3000);
     } else {
@@ -140,6 +143,9 @@ angular.module('TomCss')
         name: self.newReceptorName,
         pass: self.newReceptorPass
       });
+      if (tipsTimer) {
+        tipsTimer.cancel();
+      }
       self.createReceptorTips = '正在创建接线员，请稍候';
     }
   };
@@ -147,7 +153,7 @@ angular.module('TomCss')
   self.changePass = function () {
     if (self.myPassNew !== self.myPassNewConfirm) {
       self.changePassTips = '您两次输入的密码不符';
-      $timeout(function () {
+      tipsTimer = $timeout(function () {
         self.changePassTips = '';
       }, 3000);
     } else {
@@ -155,6 +161,9 @@ angular.module('TomCss')
         oldPass: self.myPassOld,
         newPass: self.myPassNew
       });
+      if (tipsTimer) {
+        tipsTimer.cancel();
+      }
       self.changePassTips = '正在修改密码，请稍候';
     }
   };
@@ -223,10 +232,11 @@ angular.module('TomCss')
   });
 
   tomSocket.on('login success', function (data) {
-    self.isLoggedIn  = true;
-    self.socketUsers = data.socketUsers;
-    self.profile     = getUser(data.self._id);
-    self.receptors   = data.receptors;
+    self.isLoggedIn     = true;
+    self.loginInProcess = false;
+    self.socketUsers    = data.socketUsers;
+    self.profile        = getUser(data.self._id);
+    self.receptors      = data.receptors;
   });
 
   tomSocket.on('create receptor response', function (data) {

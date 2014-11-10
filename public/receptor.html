@@ -25,7 +25,10 @@
 
                         <tr>
                             <th></th>
-                            <td><button type="submit">登陆</button></td>
+                            <td>
+                                <button type="submit" ng-if="!ssc.loginInProcess">登陆</button>
+                                <button type="submit" disabled ng-if="ssc.loginInProcess">&#xe603;</button>
+                            </td>
                         </tr>
                     </table>
                 </form>
