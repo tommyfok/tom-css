@@ -133,37 +133,37 @@ angular.module('TomCss')
   };
 
   self.createReceptor = function () {
+    if (tipsTimer) {
+      $timeout.cancel(tipsTimer);
+    }
+    tipsTimer = $timeout(function () {
+      self.createReceptorTips = '';
+    }, 3000);
     if (self.newReceptorPass !== self.newReceptorPassConfirm) {
       self.createReceptorTips = '您两次输入的密码不符';
-      tipsTimer = $timeout(function () {
-        self.createReceptorTips = '';
-      }, 3000);
     } else {
       tomSocket.emit('create receptor', {
         name: self.newReceptorName,
         pass: self.newReceptorPass
       });
-      if (tipsTimer) {
-        tipsTimer.cancel();
-      }
       self.createReceptorTips = '正在创建接线员，请稍候';
     }
   };
 
   self.changePass = function () {
+    if (tipsTimer) {
+      $timeout.cancel(tipsTimer);
+    }
+    tipsTimer = $timeout(function () {
+      self.changePassTips = '';
+    }, 3000);
     if (self.myPassNew !== self.myPassNewConfirm) {
       self.changePassTips = '您两次输入的密码不符';
-      tipsTimer = $timeout(function () {
-        self.changePassTips = '';
-      }, 3000);
     } else {
       tomSocket.emit('change password', {
         oldPass: self.myPassOld,
         newPass: self.myPassNew
       });
-      if (tipsTimer) {
-        tipsTimer.cancel();
-      }
       self.changePassTips = '正在修改密码，请稍候';
     }
   };
@@ -240,11 +240,14 @@ angular.module('TomCss')
   });
 
   tomSocket.on('create receptor response', function (data) {
+    if (tipsTimer) {
+      $timeout.cancel(tipsTimer);
+    }
+    tipsTimer = $timeout(function () {
+      self.createReceptorTips = '';
+    }, 3000);
     if (!data.status) {
       self.createReceptorTips = '添加成功！';
-      $timeout(function () {
-        self.createReceptorTips = '';
-      }, 3000);
       self.newReceptorName = '';
       self.newReceptorPass = '';
       self.newReceptorPassConfirm = '';
@@ -254,9 +257,6 @@ angular.module('TomCss')
       } else {
         self.createReceptorTips = '添加失败，请联系管理员Tommy';
       }
-      $timeout(function () {
-        self.createReceptorTips = '';
-      }, 3000);
     }
   });
 
@@ -265,6 +265,12 @@ angular.module('TomCss')
   });
 
   tomSocket.on('change password response', function (data) {
+    if (tipsTimer) {
+      $timeout.cancel(tipsTimer);
+    }
+    $timeout(function () {
+      self.changePassTips = '';
+    }, 3000);
     if (data.err) {
       self.changePassTips = data.err;
     } else {
@@ -277,9 +283,6 @@ angular.module('TomCss')
       }
       self.myPassOld = '';
     }
-    $timeout(function () {
-      self.changePassTips = '';
-    }, 3000);
   });
 
   tomSocket.on('login fail', function () {
