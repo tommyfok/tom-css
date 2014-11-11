@@ -88,10 +88,12 @@
                             <div class="User-tabs-3">
                                 <span class="User-tab"
                                       ng-click="ssc.configTab = 'list'"
+                                      ng-show="ssc.profile.role === 'admin'"
                                       ng-class="{active: ssc.configTab === 'list'}">接线员列表</span>
 
                                 <span class="User-tab"
                                       ng-click="ssc.configTab = 'add'"
+                                      ng-show="ssc.profile.role === 'admin'"
                                       ng-class="{active: ssc.configTab === 'add'}">添加接线员</span>
 
                                 <span class="User-tab"
