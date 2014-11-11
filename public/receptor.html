@@ -107,55 +107,62 @@
                                 </li>
                             </ul>
 
-                            <ul class="User-list"
-                                ng-show="ssc.configTab === 'add'">
-                                <li>
-                                    <form ng-submit="ssc.createReceptor()">
-                                        帐号：
-                                        <input type="text"
-                                               ng-model="ssc.newReceptorName"
-                                               required>
-                                        密码：
-                                        <input type="password"
-                                               ng-model="ssc.newReceptorPass"
-                                               required>
-                                        确认密码：
-                                        <input type="password"
-                                               ng-model="ssc.newReceptorPassConfirm"
-                                               required>
-                                        <span class="submitTips"
-                                              ng-show="ssc.createReceptorTips.length"
-                                              ng-bind="ssc.createReceptorTips"></span>
-                                        <button type="submit"
-                                                class="submitInLi">添加</button>
-                                    </form>
-                                </li>
-                            </ul>
+                            <div ng-show="ssc.configTab === 'add'">
+                                <form class="Sidenav-form"
+                                      name="createReceptorForm"
+                                      ng-submit="ssc.createReceptor()">
+                                    <label class="Sidenav-label">帐号：</label>
+                                    <input type="text"
+                                           ng-model="ssc.newReceptorName"
+                                           class="Sidenav-input"
+                                           ng-minlength="6"
+                                           required>
+                                    <label class="Sidenav-label">密码：</label>
+                                    <input type="password"
+                                           ng-model="ssc.newReceptorPass"
+                                           class="Sidenav-input"
+                                           ng-minlength="6"
+                                           required>
+                                    <label class="Sidenav-label">确认密码：</label>
+                                    <input type="password"
+                                           ng-model="ssc.newReceptorPassConfirm"
+                                           class="Sidenav-input"
+                                           ng-minlength="6"
+                                           required>
+                                    <span class="Sidenav-formTips"
+                                          ng-show="ssc.createReceptorTips.length"
+                                          ng-bind="ssc.createReceptorTips"></span>
+                                    <button type="submit"
+                                            class="Sidenav-submit">添加</button>
+                                </form>
+                            </div>
 
-                            <ul class="User-list"
-                                ng-show="ssc.configTab === 'personal'">
-                                <li>
-                                    <form ng-submit="ssc.changePass()">
-                                        初始密码：
-                                        <input type="password"
-                                               ng-model="ssc.myPassOld"
-                                               required>
-                                        新密码：
-                                        <input type="password"
-                                               ng-model="ssc.myPassNew"
-                                               required>
-                                        确认新密码：
-                                        <input type="password"
-                                               ng-model="ssc.myPassNewConfirm"
-                                               required>
-                                        <span class="submitTips"
-                                              ng-show="ssc.changePassTips.length"
-                                              ng-bind="ssc.changePassTips"></span>
-                                        <button type="submit"
-                                                class="submitInLi">修改</button>
-                                    </form>
-                                </li>
-                            </ul>
+                            <div ng-show="ssc.configTab === 'personal'">
+                                <form class="Sidenav-form"
+                                      name="changePassForm"
+                                      ng-submit="ssc.changePass()">
+                                    <label class="Sidenav-label">初始密码：</label>
+                                    <input type="password"
+                                           ng-model="ssc.myPassOld"
+                                           class="Sidenav-input"
+                                           required>
+                                    <label class="Sidenav-label">新密码：</label>
+                                    <input type="password"
+                                           ng-model="ssc.myPassNew"
+                                           class="Sidenav-input"
+                                           required>
+                                    <label class="Sidenav-label">确认新密码：</label>
+                                    <input type="password"
+                                           ng-model="ssc.myPassNewConfirm"
+                                           class="Sidenav-input"
+                                           required>
+                                    <span class="Sidenav-formTips"
+                                          ng-show="ssc.changePassTips.length"
+                                          ng-bind="ssc.changePassTips"></span>
+                                    <button type="submit"
+                                            class="Sidenav-submit">修改</button>
+                                </form>
+                            </div>
                         </div>
 
                         <div class="Users"
@@ -211,46 +218,50 @@
                                 </li>
                             </ul>
 
-                            <ul class="User-list"
-                                ng-show="ssc.userTab === 'history'">
-                                <li>
-                                    <form ng-submit="ssc.getHistoryCustomers()">
-                                        请填写起始日期：
-                                        <input type="date"
-                                               ng-model="ssc.historyUsersStartDay">
-                                        请填写结束日期：
-                                        <input type="date"
-                                               ng-model="ssc.historyUsersEndDay">
-                                        <button type="submit" class="submitInLi">查询</button>
-                                    </form>
-                                </li>
+                            <div ng-show="ssc.userTab === 'history'">
+                                <form class="Sidenav-form"
+                                      ng-submit="ssc.getHistoryCustomers()">
+                                    <label class="Sidenav-label">请填写起始日期：</label>
+                                    <input class="Sidenav-input"
+                                           type="date" required
+                                           ng-model="ssc.historyUsersStartDay">
+                                    <label class="Sidenav-label">请填写结束日期：</label>
+                                    <input class="Sidenav-input"
+                                           type="date" required
+                                           ng-model="ssc.historyUsersEndDay">
+                                    <button type="submit" class="Sidenav-submit">查询</button>
+                                </form>
 
-                                <li ng-repeat="user in ssc.historyCustomers"
-                                    ng-bind="user._id"
-                                    ng-hide="user._id === ssc.profile.name"
-                                    ng-click="ssc.getHistoryMessages(user._id)"
-                                    ng-class="{active: ssc.currentHistoryCustomer === user._id}"></li>
-                            </ul>
+                                <ul class="User-list">
+                                    <li ng-repeat="user in ssc.historyCustomers"
+                                        ng-bind="user._id"
+                                        ng-hide="user._id === ssc.profile.name"
+                                        ng-click="ssc.getHistoryMessages(user._id)"
+                                        ng-class="{active: ssc.currentHistoryCustomer === user._id}"></li>
+                                </ul>
+                            </div>
 
-                            <ul class="User-list"
-                                ng-show="ssc.userTab === 'missed'">
-                                <li>
-                                    <form ng-submit="ssc.getMissedCustomers()">
-                                        请填写起始日期：
-                                        <input type="date"
-                                               ng-model="ssc.missedUsersStartDay">
-                                        请填写结束日期：
-                                        <input type="date"
-                                               ng-model="ssc.missedUsersEndDay">
-                                        <button type="submit" class="submitInLi">查询</button>
-                                    </form>
-                                </li>
+                            <div ng-show="ssc.userTab === 'missed'">
+                                <form class="Sidenav-form"
+                                      ng-submit="ssc.getMissedCustomers()">
+                                    <label class="Sidenav-label">请填写起始日期：</label>
+                                    <input class="Sidenav-input"
+                                           type="date" required
+                                           ng-model="ssc.missedUsersStartDay">
+                                    <label class="Sidenav-label">请填写结束日期：</label>
+                                    <input class="Sidenav-input"
+                                           type="date" required
+                                           ng-model="ssc.missedUsersEndDay">
+                                    <button type="submit" class="Sidenav-submit">查询</button>
+                                </form>
 
-                                <li ng-repeat="user in ssc.missedCustomers"
-                                    ng-bind="user.name"
-                                    ng-click="ssc.getMissedMessages(user.name)"
-                                    ng-class="{active: ssc.currentMissedCustomer === user.name}"></li>
-                            </ul>
+                                <ul class="User-list">
+                                    <li ng-repeat="user in ssc.missedCustomers"
+                                        ng-bind="user.name"
+                                        ng-click="ssc.getMissedMessages(user.name)"
+                                        ng-class="{active: ssc.currentMissedCustomer === user.name}"></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

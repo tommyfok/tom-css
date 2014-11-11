@@ -136,10 +136,9 @@ angular.module('TomCss')
     if (tipsTimer) {
       $timeout.cancel(tipsTimer);
     }
-    tipsTimer = $timeout(function () {
-      self.createReceptorTips = '';
-    }, 3000);
-    if (self.newReceptorPass !== self.newReceptorPassConfirm) {
+    if (!$scope.createReceptorForm.$valid) {
+      self.createReceptorTips = '请检查各个字段是否完整、正确';
+    }else if (self.newReceptorPass !== self.newReceptorPassConfirm) {
       self.createReceptorTips = '您两次输入的密码不符';
     } else {
       tomSocket.emit('create receptor', {
@@ -148,16 +147,18 @@ angular.module('TomCss')
       });
       self.createReceptorTips = '正在创建接线员，请稍候';
     }
+    tipsTimer = $timeout(function () {
+      self.createReceptorTips = '';
+    }, 3000);
   };
 
   self.changePass = function () {
     if (tipsTimer) {
       $timeout.cancel(tipsTimer);
     }
-    tipsTimer = $timeout(function () {
-      self.changePassTips = '';
-    }, 3000);
-    if (self.myPassNew !== self.myPassNewConfirm) {
+    if (!$scope.changePassForm.$valid) {
+      self.changePassTips = '请检查各个字段是否完整、正确';
+    } else if (self.myPassNew !== self.myPassNewConfirm) {
       self.changePassTips = '您两次输入的密码不符';
     } else {
       tomSocket.emit('change password', {
@@ -166,6 +167,9 @@ angular.module('TomCss')
       });
       self.changePassTips = '正在修改密码，请稍候';
     }
+    tipsTimer = $timeout(function () {
+      self.changePassTips = '';
+    }, 3000);
   };
 
   // 历史消息与离线消息相关
@@ -255,7 +259,7 @@ angular.module('TomCss')
       if (data.status.code === 11000) {
         self.createReceptorTips = '此用户已经存在';
       } else {
-        self.createReceptorTips = '添加失败，请联系管理员Tommy';
+        self.createReceptorTips = '添加失败，请联系管理员';
       }
     }
   });

@@ -271,46 +271,6 @@ body {
     position: relative;
 }
 
-.User-list li input {
-    display: block;
-    width: 100%;
-    padding: 6px;
-    margin: 0;
-    box-sizing: border-box;
-    outline: none;
-}
-
-.submitTips {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    padding: 6px 12px;
-    margin: 6px 0;
-    color: red;
-}
-
-.submitInLi {
-    background: #fff;
-    color: #f60;
-    text-align: center;
-    margin-top: 6px;
-    padding: 6px 12px;
-    border: 1px solid #f60;
-    border-radius: 5px;
-    cursor: pointer;
-    box-sizing: border-box;
-    width: 30%;
-    margin-left: 70%;
-}
-
-.submitInLi:hover,
-.submitInLi:focus,
-.submitInLi:active {
-    background: #f60;
-    color: #fff;
-    outline: none;
-}
-
 .User-list li .unreads {
     position: absolute;
     width: 8px;
@@ -342,3 +302,72 @@ body {
     border-color: #f60;
 }
 
+.Sidenav-form {
+    margin: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    background: white;
+    font-size: 12px;
+    position: relative;
+}
+
+.Sidenav-label {
+    line-height: 2em;
+    display: block;
+    margin-top: .5em;
+}
+
+.Sidenav-formTips {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 6px 12px;
+    margin: 6px 0;
+    color: red;
+}
+
+.Sidenav-input {
+    display: block;
+    width: 100%;
+    padding: 6px;
+    margin: 0;
+    box-sizing: border-box;
+    outline: none;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+    position: relative;
+}
+
+.Sidenav-input:focus,
+.Sidenav-input:active {
+    border-color: #f60;
+}
+
+.Sidenav-input.ng-valid {
+    border-color: #4EaD59;
+    background: #5EBD69;
+    color: white;
+}
+
+.Sidenav-submit {
+    background: #fff;
+    color: #f60;
+    text-align: center;
+    margin-top: 6px;
+    padding: 6px 12px;
+    border: 1px solid #f60;
+    border-radius: 5px;
+    cursor: pointer;
+    box-sizing: border-box;
+    width: 30%;
+    margin-left: 70%;
+}
+
+.Sidenav-submit:hover,
+.Sidenav-submit:focus,
+.Sidenav-submit:active {
+    background: #f60;
+    color: #fff;
+    outline: none;
+}
