@@ -35,9 +35,9 @@ var SocketUserSchema = new mongoose.Schema({
       disconnect_time : Number
     }),
     AccountSchema = new mongoose.Schema({
-      name      : {type: String, index: {unique: true}},
-      password  : String,
-      role      : {type: String, index: true}
+      name      : {type: String, index: {unique: true}, required: true},
+      password  : {type: String, required: true},
+      role      : {type: String, index: true, required: true}
     }),
     MessageSchema = new mongoose.Schema({
       from_socket  : {type: String, index: true},
