@@ -104,7 +104,7 @@
                                 <li ng-repeat="user in ssc.receptors">
                                     {{ user.name }}
                                     <span class="User-del"
-                                          ng-show="user.name !== ssc.profile.name && self.profile.role === 'admin'"
+                                          ng-show="user.name !== ssc.profile.name && ssc.profile.role === 'admin'"
                                           ng-click="ssc.removeReceptor(user.name)">X</span>
                                 </li>
                             </ul>
