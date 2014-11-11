@@ -54,8 +54,8 @@ var SocketUserSchema = new mongoose.Schema({
 // 数据初始化
 // AccountModel({
 //   name: 'tommy',
-//   password: '123456',
-//   role: 'receptor'
+//   password: 'e10adc3949ba59abbe56e057f20f883e',
+//   role: 'admin'
 // }).save();
 
 // 搞清楚io，socket的关系
@@ -73,7 +73,7 @@ var port        = Number(process.argv[2]) || 3000,
     cacheMsg    = [];
 
 AccountModel
-  .find({role: 'receptor'})
+  .find({$or: [{role: 'receptor'}, {role: 'admin'}]})
   .exec(function (err, result) {
     if (err) {
       console.log(err);
@@ -155,7 +155,7 @@ function getUser (socket_id) {
 function getOnlineReceptors () {
   var list = [];
   for (var i = 0, l = socketUsers.length; i < l; i++) {
-    if (socketUsers[i].role === 'receptor') {
+    if (socketUsers[i].role === 'receptor' || socketUsers[i].role === 'admin') {
       list.push(socketUsers[i]);
     }
   }
@@ -256,7 +256,7 @@ io.on('connection', function (socket) {
 
   // 处理接线员发过来的接待某个客户的消息
   socket.on('i will recept someone', function (targetId) {
-    if (user.role === 'receptor') {
+    if (user.role === 'receptor' || user.role === 'admin') {
       var customer = getUser(targetId);
       customer.target = user._id;
       user.target = customer._id;
@@ -338,7 +338,7 @@ io.on('connection', function (socket) {
 
   // 添加接线员帐号
   socket.on('create receptor', function (data) {
-    if (user.role === 'receptor') {
+    if (user.role === 'admin') {
       AccountModel({
         name: data.name,
         password: md5(data.pass),
@@ -358,9 +358,34 @@ io.on('connection', function (socket) {
     }
   });
 
+  // 删除接线员
+  socket.on('remove receptor', function (username) {
+    if (user.role === 'admin') {
+      if (user.name === username) {
+        console.log('不能删除自己');
+      } else {
+        AccountModel.remove({name: username}, function (err, result) {
+          if (err) {
+            console.log(err);
+          } else {
+            if (result === 1) {
+              // 成功删除接线员，在内存中也删除它吧
+              for (var i = 0, l = receptors.length; i < l; i++) {
+                if (receptors[i].name === username) {
+                  receptors.splice(i, 1);
+                  break;
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+  });
+
   // 修改密码
   socket.on('change password', function (data) {
-    if (user.role === 'receptor') {
+    if (user.role === 'receptor' || user.role === 'admin') {
       AccountModel.update({
         name: user.name,
         password: md5(data.oldPass)
@@ -438,7 +463,7 @@ io.on('connection', function (socket) {
   // 返回用户名称列表
   // 离线消息的特征：to_socket === ''
   socket.on('get missed customers', function (range) {
-    if (user.role === 'receptor') {
+    if (user.role === 'receptor' || user.role === 'admin') {
       // 在此可以看到group by在mongodb中的实现方法
       MessageModel
         .aggregate()
@@ -464,7 +489,7 @@ io.on('connection', function (socket) {
   // 注册用户有固定的username而没有固定的socket_id，所以根据username来查询更合理
   // 同上，离线消息的特征是 to_socket === ''
   socket.on('get missed messages of someone', function (username) {
-    if (user.role === 'receptor') {
+    if (user.role === 'receptor' || user.role === 'admin') {
       MessageModel
       .find({
         to_socket: '',
@@ -485,7 +510,7 @@ io.on('connection', function (socket) {
   // 返回用户名称列表
   // 消息特征：to_name === user.name || from_name === user.name
   socket.on('get history customers', function (range) {
-    if (user.role === 'receptor') {
+    if (user.role === 'receptor' || user.role === 'admin') {
       MessageModel
         .aggregate()
         .match({
@@ -507,7 +532,7 @@ io.on('connection', function (socket) {
 
   // 根据某个用户名称查看历史纪录
   socket.on('get history messages of someone', function (username) {
-    if (user.role === 'receptor') {
+    if (user.role === 'receptor' || user.role === 'admin') {
       MessageModel
       .find({$or: [
         {from_name: username},

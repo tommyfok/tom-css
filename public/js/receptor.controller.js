@@ -9,7 +9,7 @@ angular.module('TomCss')
   self.profile          = {};
   self.sideTab          = 'users';
   self.userTab          = 'pending';
-  self.configTab        = 'list';
+  self.configTab        = 'personal';
   self.unreads          = [];
   self.pendings         = [];
   self.missedCustomers  = [];
@@ -75,7 +75,7 @@ angular.module('TomCss')
   // Define Public Methods.
   self.hasPendingUser = function () {
     for (var i = 0, l = self.socketUsers.length; i < l; i++) {
-      if (self.socketUsers[i].target === '' && self.socketUsers[i].role !== 'receptor') {
+      if (self.socketUsers[i].target === '' && (self.socketUsers[i].role !== 'receptor' && self.socketUsers[i].role !== 'admin')) {
         return true;
       }
     }
@@ -133,6 +133,10 @@ angular.module('TomCss')
   };
 
   self.createReceptor = function () {
+    if (self.profile.role !== 'admin') {
+      alert('您没有此权限');
+      return;
+    }
     if (tipsTimer) {
       $timeout.cancel(tipsTimer);
     }
@@ -150,6 +154,25 @@ angular.module('TomCss')
     tipsTimer = $timeout(function () {
       self.createReceptorTips = '';
     }, 3000);
+  };
+
+  self.removeReceptor = function (username) {
+    if (username === self.profile.name) {
+      alert('不能删除自己');
+      return;
+    } else if (self.profile.role !== 'admin') {
+      alert('您没有权限进行此操作');
+      return;
+    }
+    if (confirm('您确定要删除接线员 ' + username + ' ？')) {
+      for (var i = 0, l = self.receptors.length; i < l; i++) {
+        if (self.receptors[i].name === username) {
+          self.receptors.splice(i, 1);
+          break;
+        }
+      }
+      tomSocket.emit('remove receptor', username);
+    }
   };
 
   self.changePass = function () {

@@ -101,21 +101,24 @@
 
                             <ul class="User-list"
                                 ng-show="ssc.configTab === 'list'">
-                                <li ng-repeat="user in ssc.receptors"
-                                    ng-if="user.role === 'receptor'">
+                                <li ng-repeat="user in ssc.receptors">
                                     {{ user.name }}
+                                    <span class="User-del"
+                                          ng-show="user.name !== ssc.profile.name && self.profile.role === 'admin'"
+                                          ng-click="ssc.removeReceptor(user.name)">X</span>
                                 </li>
                             </ul>
 
                             <div ng-show="ssc.configTab === 'add'">
                                 <form class="Sidenav-form"
                                       name="createReceptorForm"
-                                      ng-submit="ssc.createReceptor()">
+                                      ng-submit="ssc.createReceptor()"
+                                      ng-show="ssc.profile.role === 'admin'">
                                     <label class="Sidenav-label">帐号：</label>
                                     <input type="text"
                                            ng-model="ssc.newReceptorName"
                                            class="Sidenav-input"
-                                           ng-minlength="6"
+                                           ng-minlength="3"
                                            required>
                                     <label class="Sidenav-label">密码：</label>
                                     <input type="password"
@@ -145,16 +148,19 @@
                                     <input type="password"
                                            ng-model="ssc.myPassOld"
                                            class="Sidenav-input"
+                                           ng-minlength="6"
                                            required>
                                     <label class="Sidenav-label">新密码：</label>
                                     <input type="password"
                                            ng-model="ssc.myPassNew"
                                            class="Sidenav-input"
+                                           ng-minlength="6"
                                            required>
                                     <label class="Sidenav-label">确认新密码：</label>
                                     <input type="password"
                                            ng-model="ssc.myPassNewConfirm"
                                            class="Sidenav-input"
+                                           ng-minlength="6"
                                            required>
                                     <span class="Sidenav-formTips"
                                           ng-show="ssc.changePassTips.length"
