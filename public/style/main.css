@@ -57,7 +57,7 @@ body {
 .Login-form td { text-align: right; }
 
 .Login-form input,
-.Login-form button {
+.Login-btn {
     outline: none;
     display: inline-block;
     border: none;
@@ -65,7 +65,7 @@ body {
     color: #f60;
 }
 
-.Login-form button {
+.Login-btn {
     background: #fff;
     color: #f60;
     text-align: center;
@@ -76,7 +76,7 @@ body {
     cursor: pointer;
 }
 
-.Login-form button:hover {
+.Login-btn:hover {
     background: #f60;
     color: #fff;
 }
