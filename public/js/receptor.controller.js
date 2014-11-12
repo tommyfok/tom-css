@@ -92,14 +92,18 @@ angular.module('TomCss')
 
     else if (Notification.permission === 'granted') {
       var notification = new Notification(title, {icon: iconUrl, body: content});
-      notification.onclick = window.focus;
+      notification.onclick = function () {
+        window.focus();
+      };
     }
 
     else if (Notification.permission !== 'denied') {
       Notification.requestPermission(function (permission) {
         if (permission === 'granted') {
           var notification = new Notification(title, {icon: iconUrl, body: content});
-          notification.onclick = window.focus;
+          notification.onclick = function () {
+            window.focus();
+          };
         } else {
           window.Notification = function () {};
         }
