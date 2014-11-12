@@ -83,7 +83,7 @@ angular.module('TomCss')
   function EasyNotify(title, content, iconUrl, ifFailedCallback) {
     var Notification = window.Notification || navigator.webkitNotifications,
         content = content || '',
-        iconUrl = iconUrl || 'https://github.com/favicon.ico',
+        iconUrl = iconUrl || '//' + location.host + '/favicon.ico',
         ifFailedCallback = typeof ifFailedCallback === 'function' ? ifFailedCallback : function () {};
 
     if (!Notification) {
