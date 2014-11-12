@@ -72,7 +72,26 @@ angular.module('TomCss')
     return self[type + 'UsersEndDayTimestamp'] > self[type + 'UsersStartDayTimestamp'];
   }
 
+  function notify(title, content) {
+    var Notification = window.Notification || navigator.webkitNotifications,
+        content = content || '';
+    if (!Notification) {
+      alert("This browser does not support desktop notification");
+    } else if (Notification.permission === "granted") {
+      var notification = new Notification(title, {icon: 'http://www.h7sc.com/favicon.ico', body: content});
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission(function (permission) {
+        if (permission === "granted") {
+          var notification = new Notification(title, {icon: 'http://www.h7sc.com/favicon.ico', body: content});
+        } else {
+          window.Notification = angular.noop;
+        }
+      });
+    }
+  }
+
   // Define Public Methods.
+
   self.hasPendingUser = function () {
     for (var i = 0, l = self.socketUsers.length; i < l; i++) {
       if (self.socketUsers[i].target === '' && (self.socketUsers[i].role !== 'receptor' && self.socketUsers[i].role !== 'admin')) {
@@ -340,6 +359,13 @@ angular.module('TomCss')
   tomSocket.on('add message', function (msg) {
     self.messages.push(msg);
     var newMsg = self.messages[self.messages.length - 1];
+
+    if (newMsg.to_socket === self.profile._id) {
+      notify('来自 ' + newMsg.from_name + ' 的消息：', newMsg.content);
+    } else if (newMsg.to_socket === '') {
+      notify('有客户发来咨询，请及时处理');
+    }
+
     if (newMsg.to_socket === '') {
       self.pendings.push(newMsg);
     } else if (newMsg.to_socket === self.profile._id && self.profile.target !== newMsg.from_socket) {
