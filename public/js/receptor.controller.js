@@ -16,6 +16,15 @@ angular.module('TomCss')
   self.missedMessages   = [];
   self.historyCustomers = [];
   self.historyMessages  = [];
+  self.isBlur           = false;
+
+  angular.element(window).on('blur', function () {
+    self.isBlur = true;
+  });
+
+  angular.element(window).on('focus', function () {
+    self.isBlur = false;
+  });
 
   var tipsTimer;
 
@@ -360,10 +369,10 @@ angular.module('TomCss')
     self.messages.push(msg);
     var newMsg = self.messages[self.messages.length - 1];
 
-    if (newMsg.to_socket === self.profile._id) {
-      notify('来自 ' + newMsg.from_name + ' 的消息：', newMsg.content);
-    } else if (newMsg.to_socket === '') {
-      notify('有客户发来咨询，请及时处理');
+    if (newMsg.to_socket === self.profile._id || newMsg.to_socket === '') {
+      if (self.isBlur === true) {
+        notify('来自 ' + newMsg.from_name + ' 的消息', newMsg.content);
+      }
     }
 
     if (newMsg.to_socket === '') {
