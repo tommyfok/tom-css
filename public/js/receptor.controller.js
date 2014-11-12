@@ -80,19 +80,28 @@ angular.module('TomCss')
     return self[type + 'UsersEndDayTimestamp'] > self[type + 'UsersStartDayTimestamp'];
   }
 
-  function notify(title, content) {
+  function EasyNotify(title, content, iconUrl, ifFailedCallback) {
     var Notification = window.Notification || navigator.webkitNotifications,
-        content = content || '';
+        content = content || '',
+        iconUrl = iconUrl || 'https://github.com/favicon.ico',
+        ifFailedCallback = typeof ifFailedCallback === 'function' ? ifFailedCallback : function () {};
+
     if (!Notification) {
-      alert("This browser does not support desktop notification");
-    } else if (Notification.permission === "granted") {
-      var notification = new Notification(title, {icon: 'http://www.h7sc.com/favicon.ico', body: content});
-    } else if (Notification.permission !== 'denied') {
+      ifFailedCallback();
+    }
+
+    else if (Notification.permission === 'granted') {
+      var notification = new Notification(title, {icon: iconUrl, body: content});
+      notification.onclick = window.focus;
+    }
+
+    else if (Notification.permission !== 'denied') {
       Notification.requestPermission(function (permission) {
-        if (permission === "granted") {
-          var notification = new Notification(title, {icon: 'http://www.h7sc.com/favicon.ico', body: content});
+        if (permission === 'granted') {
+          var notification = new Notification(title, {icon: iconUrl, body: content});
+          notification.onclick = window.focus;
         } else {
-          window.Notification = angular.noop;
+          window.Notification = function () {};
         }
       });
     }
@@ -370,7 +379,7 @@ angular.module('TomCss')
 
     if (newMsg.to_socket === self.profile._id || newMsg.to_socket === '') {
       if (self.isBlur === true) {
-        notify('来自 ' + newMsg.from_name + ' 的消息', newMsg.content);
+        EasyNotify('来自 ' + newMsg.from_name + ' 的消息', newMsg.content);
       }
     }
 
