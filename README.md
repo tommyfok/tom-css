@@ -25,7 +25,6 @@ You should have these libraries installed globally.
 - stop: `forever stop server.js`
 
 ## TODO
-- frontend management with gulp and bower
-- user management
-- data and message analysis
+- Search messages in more ways
+- Server-side UI enhancement
 - Fix bugs
