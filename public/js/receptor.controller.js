@@ -2,7 +2,8 @@ angular.module('TomCss')
 
 .controller('ServerSideController', function ($scope, $timeout, tomSocket) {
   var self   = this,
-      dialog = document.getElementById('Dialogs');
+      dialog = document.getElementById('Dialogs'),
+      tipsTimer;
 
   self.messages         = [];
   self.socketUsers      = [];
@@ -25,8 +26,6 @@ angular.module('TomCss')
   angular.element(window).on('focus', function () {
     self.isBlur = false;
   });
-
-  var tipsTimer;
 
   // Define Private Methods.
   function getUser (socket_id) {
