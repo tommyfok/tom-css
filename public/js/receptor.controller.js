@@ -448,7 +448,7 @@ angular.module('TomCss')
       removeAllMsg(self.lastOfflineSocket, self.unreads);
     }
     self.lastOfflineSocket = socket_id;
-    self.isTargetOffline  = self.profile.target !== socket_id;
+    self.isTargetOffline  = self.profile.target === socket_id;
   });
 
   tomSocket.on('receptor disconnect', function (socket_id) {
