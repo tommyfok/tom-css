@@ -80,20 +80,27 @@ angular.module('TomCss')
     return self[type + 'UsersEndDayTimestamp'] > self[type + 'UsersStartDayTimestamp'];
   }
 
-  function EasyNotify(title, content, iconUrl, ifFailedCallback) {
+  function onNotificationClick (param) {
+    window.focus();
+    self.sideTab = param.sideTab;
+    self.userTab = param.userTab;
+    self.recept(param.recept_socket);
+  }
+
+  function EasyNotify(title, content, iconUrl, param) {
     var Notification = window.Notification || navigator.webkitNotifications,
         content = content || '',
         iconUrl = iconUrl || '//' + location.host + '/favicon.ico',
-        ifFailedCallback = typeof ifFailedCallback === 'function' ? ifFailedCallback : function () {};
+        param   = param || {};
 
     if (!Notification) {
-      ifFailedCallback();
+      window.Notification = function () {};
     }
 
     else if (Notification.permission === 'granted') {
       var notification = new Notification(title, {icon: iconUrl, body: content});
       notification.onclick = function () {
-        window.focus();
+        onNotificationClick(param);
       };
     }
 
@@ -102,10 +109,8 @@ angular.module('TomCss')
         if (permission === 'granted') {
           var notification = new Notification(title, {icon: iconUrl, body: content});
           notification.onclick = function () {
-            window.focus();
+            onNotificationClick(param);
           };
-        } else {
-          window.Notification = function () {};
         }
       });
     }
@@ -381,9 +386,21 @@ angular.module('TomCss')
     self.messages.push(msg);
     var newMsg = self.messages[self.messages.length - 1];
 
-    if (newMsg.to_socket === self.profile._id || newMsg.to_socket === '') {
-      if (self.isBlur === true) {
-        EasyNotify('来自 ' + newMsg.from_name + ' 的消息', newMsg.content);
+    if (self.isBlur === true) {
+      if (newMsg.to_socket === self.profile._id) {
+        EasyNotify('来自 ' + newMsg.from_name + ' 的消息', newMsg.content, '', {
+          sideTab: 'users',
+          userTab: 'recepting',
+          recept_socket: newMsg.from_socket
+        });
+      }
+
+      if (newMsg.to_socket === '') {
+        EasyNotify('来自 ' + newMsg.from_name + ' 的消息', newMsg.content, '', {
+          sideTab: 'users',
+          userTab: 'pending',
+          recept_socket: newMsg.from_socket
+        });
       }
     }
 
