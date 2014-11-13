@@ -131,9 +131,9 @@ body {
 .Dialog-item.info p {
     display: block;
     text-align: center;
-    background: #aaa;
-    color: #fff;
-    border-bottom: 3px solid #999;
+    background: #eee;
+    color: #999;
+    border: none;
 }
 
 .Dialog-form {
