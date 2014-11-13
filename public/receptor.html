@@ -45,6 +45,11 @@
                                      ng-if="(msg.from_socket === ssc.profile.target) || (msg.to_socket === ssc.profile.target && msg.to_socket !== '')">
                                     <p ng-bind="msg.content"></p>
                                 </div>
+                                <!-- 当正在聊天的用户离线了 -->
+                                <div class="Dialog-item info"
+                                     ng-show="ssc.isTargetOffline">
+                                    该用户已离线
+                                </div>
                             </div>
 
                             <div ng-show="ssc.userTab === 'missed'">

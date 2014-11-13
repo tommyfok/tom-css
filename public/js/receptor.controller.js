@@ -5,19 +5,21 @@ angular.module('TomCss')
       dialog = document.getElementById('Dialogs'),
       tipsTimer;
 
-  self.messages         = [];
-  self.socketUsers      = [];
-  self.profile          = {};
-  self.sideTab          = 'users';
-  self.userTab          = 'pending';
-  self.configTab        = 'personal';
-  self.unreads          = [];
-  self.pendings         = [];
-  self.missedCustomers  = [];
-  self.missedMessages   = [];
-  self.historyCustomers = [];
-  self.historyMessages  = [];
-  self.isBlur           = false;
+  self.messages          = [];
+  self.socketUsers       = [];
+  self.profile           = {};
+  self.sideTab           = 'users';
+  self.userTab           = 'pending';
+  self.configTab         = 'personal';
+  self.unreads           = [];
+  self.pendings          = [];
+  self.missedCustomers   = [];
+  self.missedMessages    = [];
+  self.historyCustomers  = [];
+  self.historyMessages   = [];
+  self.isBlur            = false;
+  self.isTargetOffline   = false;
+  self.lastOfflineSocket = '';
 
   angular.element(window).on('blur', function () {
     self.isBlur = true;
@@ -379,6 +381,7 @@ angular.module('TomCss')
     getUser(data.recepted).target = data.receptor;
     removeAllMsg(data.recepted, self.unreads);
     removeAllMsg(data.recepted, self.pendings);
+    self.isTargetOffline = false;
     DialogToBottom();
   });
 
@@ -440,8 +443,12 @@ angular.module('TomCss')
 
   tomSocket.on('customer disconnect', function (socket_id) {
     self.socketUsers.splice(self.socketUsers.indexOf(getUser(socket_id)), 1);
-    removeAllMsg(socket_id);
-    removeAllMsg(socket_id, self.unreads);
+    if (self.lastOfflineSocket) {
+      removeAllMsg(self.lastOfflineSocket);
+      removeAllMsg(self.lastOfflineSocket, self.unreads);
+    }
+    self.lastOfflineSocket = socket_id;
+    self.isTargetOffline  = self.profile.target !== socket_id;
   });
 
   tomSocket.on('receptor disconnect', function (socket_id) {

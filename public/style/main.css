@@ -128,6 +128,14 @@ body {
     border-bottom: 3px solid #e50;
 }
 
+.Dialog-item.info p {
+    display: block;
+    text-align: center;
+    background: #aaa;
+    color: #fff;
+    border-bottom: 3px solid #999;
+}
+
 .Dialog-form {
     width: 100%;
     margin: 0;
