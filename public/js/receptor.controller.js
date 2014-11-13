@@ -150,7 +150,7 @@ angular.module('TomCss')
   };
 
   self.submitText = function () {
-    if (self.currentText && self.userTab === 'recepting') {
+    if (self.currentText && self.userTab === 'recepting' && self.profile.target !== '' && getUser(self.profile.target) !== null) {
       tomSocket.emit('web message', self.currentText);
       self.currentText = '';
     }
