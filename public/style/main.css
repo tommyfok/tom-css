@@ -1,10 +1,10 @@
 @font-face {
     font-family: 'tomfont';
-    src: url('http://at.alicdn.com/t/font_1415955786_2200956.eot');
-    src: url('http://at.alicdn.com/t/font_1415955786_2200956.eot?#iefix') format('embedded-opentype'),
-    url('http://at.alicdn.com/t/font_1415955786_2200956.woff') format('woff'),
-    url('http://at.alicdn.com/t/font_1415955786_2200956.ttf') format('truetype'),
-    url('http://at.alicdn.com/t/font_1415955786_2200956.svg#iconfont') format('svg');
+    src: url('http://at.alicdn.com/t/font_1416207284_010864.eot'); /* IE9*/
+    src: url('http://at.alicdn.com/t/font_1416207284_010864.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('http://at.alicdn.com/t/font_1416207284_010864.woff') format('woff'), /* chrome、firefox */
+    url('http://at.alicdn.com/t/font_1416207284_010864.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+    url('http://at.alicdn.com/t/font_1416207284_010864.svg#iconfont') format('svg'); /* iOS 4.1- */
 }
 
 html,
@@ -317,8 +317,8 @@ body {
     width: 22px;
     height: 22px;
     line-height: 22px;
+    font-size: 12px;
     text-align: center;
-    background: #fff;
     color: #f60;
     border: 1px solid #f60;
     border-radius: 22px;
