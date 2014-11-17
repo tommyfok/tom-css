@@ -1,6 +1,6 @@
 angular.module('TomCss')
 
-.controller('ServerSideController', function ($scope, $timeout, tomSocket) {
+.controller('ServerSideController', function ($scope, $timeout, $cookies, tomSocket) {
   var self   = this,
       dialog = document.getElementById('Dialogs'),
       tipsTimer;
@@ -179,6 +179,12 @@ angular.module('TomCss')
     }
   };
 
+  self.logout = function () {
+    if (confirm('您确定要登出？')) {
+      tomSocket.emit('logout', self.profile.name);
+    }
+  };
+
   self.createReceptor = function () {
     if (self.profile.role !== 'admin') {
       alert('您没有此权限');
@@ -303,6 +309,11 @@ angular.module('TomCss')
   tomSocket.on('connection success', function (user) {
     self.profile = user;
     self.socketUsers.push(user);
+    if ($cookies.HQName && $cookies.HQKey) {
+      self.username = $cookies.HQName;
+      self.password = $cookies.HQKey;
+      self.login();
+    }
   });
 
   tomSocket.on('login success', function (data) {
@@ -311,6 +322,8 @@ angular.module('TomCss')
     self.socketUsers    = data.socketUsers;
     self.profile        = getUser(data.self._id);
     self.receptors      = data.receptors;
+    $cookies.HQKey      = data.HQKey;
+    $cookies.HQName     = self.profile.name;
   });
 
   tomSocket.on('create receptor response', function (data) {
@@ -360,7 +373,12 @@ angular.module('TomCss')
   });
 
   tomSocket.on('login fail', function () {
-    alert('帐号或密码不正确！');
+    if ($cookies.HQKey) {
+      $cookies.HQKey = '';
+      alert('您的Session已经过期，请重新登录');
+    } else {
+      alert('帐号或密码不正确！');
+    }
     self.loginInProcess = false;
   });
 
@@ -460,5 +478,11 @@ angular.module('TomCss')
     });
     removeAllMsg(socket_id);
     removeAllMsg(socket_id, self.unreads);
+  });
+
+  tomSocket.on('logout success', function () {
+    $cookies.HQKey  = '';
+    $cookies.HQName = '';
+    location.reload();
   });
 });

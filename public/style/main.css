@@ -1,10 +1,10 @@
 @font-face {
     font-family: 'tomfont';
-    src: url('http://at.alicdn.com/t/font_1415584712_004677.eot');
-    src: url('http://at.alicdn.com/t/font_1415584712_004677.eot?#iefix') format('embedded-opentype'),
-    url('http://at.alicdn.com/t/font_1415584712_004677.woff') format('woff'),
-    url('http://at.alicdn.com/t/font_1415584712_004677.ttf') format('truetype'),
-    url('http://at.alicdn.com/t/font_1415584712_004677.svg#iconfont') format('svg');
+    src: url('http://at.alicdn.com/t/font_1415955786_2200956.eot');
+    src: url('http://at.alicdn.com/t/font_1415955786_2200956.eot?#iefix') format('embedded-opentype'),
+    url('http://at.alicdn.com/t/font_1415955786_2200956.woff') format('woff'),
+    url('http://at.alicdn.com/t/font_1415955786_2200956.ttf') format('truetype'),
+    url('http://at.alicdn.com/t/font_1415955786_2200956.svg#iconfont') format('svg');
 }
 
 html,
@@ -199,10 +199,10 @@ body {
     cursor: pointer;
     color: grey;
     text-align: center;
+    font-size: 28px;
 }
 
-.Sidebar-tab-users { font-size: 28px; }
-.Sidebar-tab-config { font-size: 32px; }
+.Sidebar-tab.Sidebar-tab-config { font-size: 32px; }
 
 .Sidebar-tab.active {
     color: #f60;

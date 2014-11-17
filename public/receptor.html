@@ -86,6 +86,9 @@
                             <span class="Sidebar-tab Sidebar-tab-config"
                                   ng-click="ssc.sideTab = 'config'"
                                   ng-class="{active: ssc.sideTab === 'config'}">&#xe601;</span>
+
+                            <span class="Sidebar-tab"
+                                  ng-click="ssc.logout()">&#xe603;</span>
                         </div>
 
                         <div class="Users"
@@ -285,6 +288,7 @@
     <script src="/js/es5-shim.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/angular.js"></script>
+    <script src="/js/angular-cookies.js"></script>
     <script src="/js/app.js"></script>
     <script src="/js/socket.js"></script>
     <script src="/js/receptor.controller.js"></script>

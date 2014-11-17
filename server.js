@@ -70,7 +70,9 @@ var SocketUserSchema = new mongoose.Schema({
 var port        = Number(process.argv[2]) || 3000,
     socketUsers = [],
     receptors   = [],
-    cacheMsg    = [];
+    cacheMsg    = [],
+    sessionKeys = {},
+    updateTimer = setInterval(updateReceptorStatus, 3600 * 1000);
 
 AccountModel
   .find({$or: [{role: 'receptor'}, {role: 'admin'}]})
@@ -119,7 +121,31 @@ function Message (fromUser, toUser, msg) {
 }
 
 // 方法
-function doLogin (name, pass) {
+function updateReceptorStatus () {
+  receptors.forEach(function (item) {
+    if (sessionKeys[item.name]) {
+      if (sessionKeys[item.name].expire > Date.now()) {
+        item.status = 1;
+      } else {
+        item.status = 0;
+        delete sessionKeys[item.name];
+      }
+    } else {
+      item.status = 0;
+    }
+  });
+}
+
+function doLoginByKey (name, key) {
+  if (sessionKeys[name] && sessionKeys[name].key === key && sessionKeys[name].expire > Date.now()) {
+    sessionKeys[name].expire = Date.now() + 24 * 3600 * 1000;
+    return doLogin(name, key, true);
+  } else {
+    return doLogin(name, key, false);
+  }
+}
+
+function doLogin (name, pass, hasValidKey) {
   var result = {
     valid : false,
     role  : '',
@@ -128,12 +154,26 @@ function doLogin (name, pass) {
 
   receptors.forEach(function (v) {
     if (v.name === name) {
-      result.valid = v.password === md5(pass);
+      result.valid = hasValidKey || (v.password === md5(pass));
       result._id   = v._id;
       result.role  = v.role;
       result.name  = name;
     }
   });
+
+  if (result.valid) {
+    if (!sessionKeys[name]) {
+      sessionKeys[name] = {
+        expire: Date.now() + 24 * 3600 * 1000,
+        key: md5(Date.now() + pass)
+      };
+    } else {
+      sessionKeys[name].expire = Date.now() + 24 * 3600 * 1000;
+      if (hasValidKey !== true) {
+        sessionKeys[name].key = md5(Date.now() + pass);
+      }
+    }
+  }
 
   return result;
 }
@@ -205,7 +245,7 @@ io.on('connection', function (socket) {
 
   // 接线员登陆
   socket.on('login', function (data) {
-    var accountInfo = doLogin(data.name, data.pass);
+    var accountInfo = doLoginByKey(data.name, data.pass);
     if (accountInfo.valid === true) {
       // 首先，如果没有其他接线员，那么这个接线员要接收所有离线消息
       if (getOnlineReceptors().length === 0) {
@@ -241,10 +281,12 @@ io.on('connection', function (socket) {
 
       // 让这个链接(socket)加入"receptors"房间
       socket.join('receptors');
+      updateReceptorStatus();
       socket.emit('login success', {
         self        : user,
         socketUsers : socketUsers,
-        receptors   : receptorsForClient()
+        receptors   : receptorsForClient(),
+        HQKey       : sessionKeys[user.name].key
       });
 
       // 给所有接线员发送用户更新通知
@@ -351,6 +393,7 @@ io.on('connection', function (socket) {
 
         // 创建成功才会有_id
         if (result && ('_id' in result)) {
+          result.status = 1; // 0=offline, 1=online;
           receptors.push(result);
           io.to('receptors').emit('update receptor list', receptorsForClient());
         }
@@ -436,6 +479,7 @@ io.on('connection', function (socket) {
       io.to('receptors').emit('customer disconnect', user._id);
       socketUsers.splice(socketUsers.indexOf(user), 1);
     } else {
+      sessionKeys[user.name].expire = Date.now() + 24 * 3600 * 1000;
       io.emit('receptor disconnect', user._id);
       socketUsers.forEach(function (item) {
         if (item.target === user._id) {
@@ -446,6 +490,7 @@ io.on('connection', function (socket) {
       socket.leave('receptors');
     }
 
+    // 更新数据库中的用户离线时间字段
     SocketUserModel.update({
       id: user._id
     }, {
@@ -547,6 +592,20 @@ io.on('connection', function (socket) {
         }
       });
     }
+  });
+
+  // 用户登出
+  socket.on('logout', function (username) {
+    var CurrentUser = getUser(user._id);
+    if (CurrentUser) {
+      if (CurrentUser.role === 'receptor' || CurrentUser.role === 'admin') {
+        if (sessionKeys[username] && CurrentUser.name === username) {
+          delete sessionKeys[username];
+          socket.emit('logout success');
+        }
+      }
+    }
+    updateReceptorStatus();
   });
 });
 
