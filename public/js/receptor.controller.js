@@ -309,7 +309,7 @@ angular.module('TomCss')
   tomSocket.on('connection success', function (user) {
     self.profile = user;
     self.socketUsers.push(user);
-    if ($cookies.HQName && $cookies.HQKey) {
+    if ($cookies.HQName && $cookies.HQKey && !self.isLoggedIn) {
       self.username = $cookies.HQName;
       self.password = $cookies.HQKey;
       self.login();
