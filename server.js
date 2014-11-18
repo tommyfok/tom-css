@@ -152,6 +152,7 @@ function doLogin (name, pass, hasValidKey) {
     _id   : ''
   };
 
+  // get user data
   receptors.forEach(function (v) {
     if (v.name === name) {
       result.valid = hasValidKey || (v.password === md5(pass));
@@ -161,18 +162,11 @@ function doLogin (name, pass, hasValidKey) {
     }
   });
 
-  if (result.valid) {
-    if (!sessionKeys[name]) {
-      sessionKeys[name] = {
-        expire: Date.now() + 24 * 3600 * 1000,
-        key: md5(Date.now() + pass)
-      };
-    } else {
-      sessionKeys[name].expire = Date.now() + 24 * 3600 * 1000;
-      if (hasValidKey !== true) {
-        sessionKeys[name].key = md5(Date.now() + pass);
-      }
-    }
+  if (!hasValidKey && result.valid) {
+    sessionKeys[name] = {
+      key: md5(Date.now() + pass),
+      expire: Date.now() + 24 * 3600 * 1000
+    };
   }
 
   return result;
