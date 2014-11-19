@@ -28,3 +28,4 @@ You should have these libraries installed globally.
 - Search messages in more ways
 - Server-side UI enhancement
 - Fix bugs
+- Use a `conversation` data model rather than socket-id to indentify a real conversation, just see [Olark](https://www.olark.com) as reference.
