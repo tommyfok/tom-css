@@ -25,7 +25,10 @@ You should have these libraries installed globally.
 - stop: `forever stop server.js`
 
 ## TODO
-- Search messages in more ways
-- Server-side UI enhancement
-- Fix bugs
-- Use a `conversation` data model rather than socket-id to indentify a real conversation, just see [Olark](https://www.olark.com) as reference.
+- Receptor Management. :heavy_check_mark:
+- Socket.io sometimes unstable in client-side. Find the reason and fix it.
+- Use a `conversation` data model rather than socket-id to indentify a real conversation.
+- Search messages in more ways.
+- Server-side UI enhancement.
+- Just see [Olark](https://www.olark.com) or [ChatCat](http://chatcat.io/) for reference.
+- Fix bugs.
