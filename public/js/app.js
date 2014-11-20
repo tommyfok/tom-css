@@ -1,4 +1,4 @@
 angular.module('TomCss', [
-  'TomSocket',
+  'Socket',
   'ngCookies'
 ]);

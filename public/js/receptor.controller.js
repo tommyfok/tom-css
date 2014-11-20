@@ -1,6 +1,6 @@
 angular.module('TomCss')
 
-.controller('ServerSideController', function ($scope, $timeout, $cookies, tomSocket) {
+.controller('ServerSideController', function ($scope, $timeout, $cookies, Socket) {
   var self   = this,
       dialog = document.getElementById('Dialogs'),
       tipsTimer;
@@ -151,7 +151,7 @@ angular.module('TomCss')
 
   self.submitText = function () {
     if (self.currentText && self.userTab === 'recepting' && self.profile.target !== '' && getUser(self.profile.target) !== null) {
-      tomSocket.emit('web message', self.currentText);
+      Socket.emit('web message', self.currentText);
       self.currentText = '';
     }
   };
@@ -164,13 +164,13 @@ angular.module('TomCss')
   };
 
   self.recept = function (socket_id) {
-    tomSocket.emit('i will recept someone', socket_id);
+    Socket.emit('i will recept someone', socket_id);
     self.userTab = 'recepting';
   };
 
   self.login = function () {
     if (self.username && self.password && !self.loginInProcess) {
-      tomSocket.emit('login', {
+      Socket.emit('login', {
         name: self.username,
         pass: self.password
       });
@@ -181,7 +181,7 @@ angular.module('TomCss')
 
   self.logout = function () {
     if (confirm('您确定要登出？')) {
-      tomSocket.emit('logout', self.profile.name);
+      Socket.emit('logout', self.profile.name);
     }
   };
 
@@ -198,7 +198,7 @@ angular.module('TomCss')
     }else if (self.newReceptorPass !== self.newReceptorPassConfirm) {
       self.createReceptorTips = '您两次输入的密码不符';
     } else {
-      tomSocket.emit('create receptor', {
+      Socket.emit('create receptor', {
         name: self.newReceptorName,
         pass: self.newReceptorPass
       });
@@ -224,7 +224,7 @@ angular.module('TomCss')
           break;
         }
       }
-      tomSocket.emit('remove receptor', username);
+      Socket.emit('remove receptor', username);
     }
   };
 
@@ -237,7 +237,7 @@ angular.module('TomCss')
     } else if (self.myPassNew !== self.myPassNewConfirm) {
       self.changePassTips = '您两次输入的密码不符';
     } else {
-      tomSocket.emit('change password', {
+      Socket.emit('change password', {
         oldPass: self.myPassOld,
         newPass: self.myPassNew
       });
@@ -252,7 +252,7 @@ angular.module('TomCss')
   // 获取错过了的客户列表
   self.getMissedCustomers = function () {
     if(isQueryTimeValid('missed')) {
-      tomSocket.emit('get missed customers', {
+      Socket.emit('get missed customers', {
         start: self.missedUsersStartDayTimestamp,
         end: self.missedUsersEndDayTimestamp
       });
@@ -263,7 +263,7 @@ angular.module('TomCss')
   // 获取历史用户列表
   self.getHistoryCustomers = function () {
     if(isQueryTimeValid('history')) {
-      tomSocket.emit('get history customers', {
+      Socket.emit('get history customers', {
         start: self.historyUsersStartDayTimestamp,
         end: self.historyUsersEndDayTimestamp
       });
@@ -274,39 +274,39 @@ angular.module('TomCss')
 
   // 根据用户名获取离线消息
   self.getMissedMessages = function (name) {
-    tomSocket.emit('get missed messages of someone', name);
+    Socket.emit('get missed messages of someone', name);
     self.currentMissedCustomer = name;
   };
   // 根据用户名获取历史消息
   self.getHistoryMessages = function (name) {
-    tomSocket.emit('get history messages of someone', name);
+    Socket.emit('get history messages of someone', name);
     self.currentHistoryCustomer = name;
   };
 
   // 查看离线游客列表
-  tomSocket.on('show missed customers', function (customers) {
+  Socket.on('show missed customers', function (customers) {
     // do something with data
     self.missedCustomers = customers;
   });
   // 查看某个离线客户的消息
-  tomSocket.on('show missed messages of someone', function (messages) {
+  Socket.on('show missed messages of someone', function (messages) {
     self.missedMessages = messages;
     DialogToBottom();
   });
 
   // 查看历史用户列表
-  tomSocket.on('show history customers', function (customers) {
+  Socket.on('show history customers', function (customers) {
     // do something with data
     self.historyCustomers = customers;
   });
   // 查看某个历史客户的消息
-  tomSocket.on('show history messages of someone', function (messages) {
+  Socket.on('show history messages of someone', function (messages) {
     self.historyMessages = messages;
     DialogToBottom();
   });
 
   // Define socket events.
-  tomSocket.on('connection success', function (user) {
+  Socket.on('connection success', function (user) {
     self.profile = user;
     self.socketUsers.push(user);
     if ($cookies.HQName && $cookies.HQKey && !self.isLoggedIn) {
@@ -316,7 +316,7 @@ angular.module('TomCss')
     }
   });
 
-  tomSocket.on('login success', function (data) {
+  Socket.on('login success', function (data) {
     self.isLoggedIn     = true;
     self.loginInProcess = false;
     self.socketUsers    = data.socketUsers;
@@ -326,7 +326,7 @@ angular.module('TomCss')
     $cookies.HQName     = self.profile.name;
   });
 
-  tomSocket.on('create receptor response', function (data) {
+  Socket.on('create receptor response', function (data) {
     if (tipsTimer) {
       $timeout.cancel(tipsTimer);
     }
@@ -347,11 +347,11 @@ angular.module('TomCss')
     }
   });
 
-  tomSocket.on('update receptor list', function (data) {
+  Socket.on('update receptor list', function (data) {
     self.receptors = data;
   });
 
-  tomSocket.on('change password response', function (data) {
+  Socket.on('change password response', function (data) {
     if (tipsTimer) {
       $timeout.cancel(tipsTimer);
     }
@@ -372,7 +372,7 @@ angular.module('TomCss')
     }
   });
 
-  tomSocket.on('login fail', function () {
+  Socket.on('login fail', function () {
     if ($cookies.HQKey) {
       $cookies.HQKey = '';
       alert('您的Session已经过期，请重新登录');
@@ -382,17 +382,17 @@ angular.module('TomCss')
     self.loginInProcess = false;
   });
 
-  tomSocket.on('add user', function (user) {
+  Socket.on('add user', function (user) {
     self.socketUsers.push(user);
   });
 
-  tomSocket.on('add receptor', function (user) {
+  Socket.on('add receptor', function (user) {
     var receptor = getUser(user._id);
     receptor.role = user.role;
     receptor.name = user.name;
   });
 
-  tomSocket.on('someone is recepted', function (data) {
+  Socket.on('someone is recepted', function (data) {
     if (data.receptor === self.profile._id) {
       self.profile.target = data.recepted;
     }
@@ -403,7 +403,7 @@ angular.module('TomCss')
     DialogToBottom();
   });
 
-  tomSocket.on('add message', function (msg) {
+  Socket.on('add message', function (msg) {
     self.messages.push(msg);
     var newMsg = self.messages[self.messages.length - 1];
 
@@ -434,7 +434,7 @@ angular.module('TomCss')
     }
   });
 
-  tomSocket.on('add history messages', function (data) {
+  Socket.on('add history messages', function (data) {
     data.messages.forEach(function (msg) {
       // 如果是发给客户的消息，那么这些消息的来源改成当前接线员的ID
       if (msg.to_socket === data.customer) {
@@ -459,7 +459,7 @@ angular.module('TomCss')
     Array.prototype.push.apply(self.pendings, data.messages);
   });
 
-  tomSocket.on('customer disconnect', function (socket_id) {
+  Socket.on('customer disconnect', function (socket_id) {
     self.socketUsers.splice(self.socketUsers.indexOf(getUser(socket_id)), 1);
     if (self.lastOfflineSocket) {
       removeAllMsg(self.lastOfflineSocket);
@@ -469,7 +469,7 @@ angular.module('TomCss')
     self.isTargetOffline  = self.profile.target === socket_id;
   });
 
-  tomSocket.on('receptor disconnect', function (socket_id) {
+  Socket.on('receptor disconnect', function (socket_id) {
     self.socketUsers.splice(self.socketUsers.indexOf(getUser(socket_id)), 1);
     self.socketUsers.forEach(function (item, index) {
       if (item.target === socket_id) {
@@ -480,7 +480,7 @@ angular.module('TomCss')
     removeAllMsg(socket_id, self.unreads);
   });
 
-  tomSocket.on('logout success', function () {
+  Socket.on('logout success', function () {
     $cookies.HQKey  = '';
     $cookies.HQName = '';
     location.reload();
