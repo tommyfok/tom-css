@@ -26,7 +26,7 @@ You should have these libraries installed globally.
 
 ## TODO
 - Receptor Management. :heavy_check_mark:
-- Socket.io sometimes unstable in client-side. Find the reason and fix it.
+- Socket.io sometimes unstable in client-side. Find the reason and fix it. :heavy_check_mark:
 - Use a `conversation` data model rather than socket-id to indentify a real conversation.
 - Search messages in more ways.
 - Server-side UI enhancement.
