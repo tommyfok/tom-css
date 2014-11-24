@@ -2,8 +2,8 @@
 > This is a realtime customer service system using nodejs, socket.io, mongodb and angularjs etc.
 
 - Support IE8+ and all major browsers
-- See [Client Side Demo](http://www.corvy.net:3000) 
-- See [Server Side Demo](http://www.corvy.net:8000/server) and login with `{username: 'tommy', password: '123456'}`
+- See [Client Side Demo](http://tomi.in) 
+- See [Server Side Demo](http://css.tomi.in) and login with `{username: 'tommy', password: '123456'}`
 
 ## Requirements
 You should have these libraries installed globally.
