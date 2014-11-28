@@ -294,30 +294,34 @@ io.on('connection', function (socket) {
   socket.on('i will recept someone', function (targetId) {
     if (user.role === 'receptor' || user.role === 'admin') {
       var customer = getUser(targetId);
-      customer.target = user._id;
-      user.target = customer._id;
-      io.to(targetId).emit('you are recepted', Message(user, customer, '客服' + user.name + '为您服务！'));
+      if (customer) {
+        customer.target = user._id;
+        user.target = customer._id;
+        io.to(targetId).emit('you are recepted', Message(user, customer, '客服' + user.name + '为您服务！'));
 
-      // 把此用户发过来的消息的目的socket改成user._id，目标用户改成user.name
-      MessageModel
-        .update({
-          from_socket: customer._id,
-          to_socket: ''
-        }, {
-          to_socket : user._id,
-          to_name   : user.name
-        }, {
-          multi: true
-        }, function (err, result) {
-          if (err) {
-            console.log(err);
-          }
+        // 把此用户发过来的消息的目的socket改成user._id，目标用户改成user.name
+        MessageModel
+          .update({
+            from_socket: customer._id,
+            to_socket: ''
+          }, {
+            to_socket : user._id,
+            to_name   : user.name
+          }, {
+            multi: true
+          }, function (err, result) {
+            if (err) {
+              console.log(err);
+            }
+          });
+
+        io.to('receptors').emit('someone is recepted', {
+          receptor: user._id,
+          recepted: customer._id
         });
-
-      io.to('receptors').emit('someone is recepted', {
-        receptor: user._id,
-        recepted: customer._id
-      });
+      } else {
+        socket.emit('recept failed', targetId);
+      }
     }
   });
 
@@ -473,6 +477,9 @@ io.on('connection', function (socket) {
       io.to('receptors').emit('customer disconnect', user._id);
       socketUsers.splice(socketUsers.indexOf(user), 1);
     } else {
+      if (!user.name in sessionKeys) {
+        sessionKeys[user.name] = {};
+      }
       sessionKeys[user.name].expire = Date.now() + 24 * 3600 * 1000;
       io.emit('receptor disconnect', user._id);
       socketUsers.forEach(function (item) {
