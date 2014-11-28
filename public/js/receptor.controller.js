@@ -316,6 +316,9 @@ angular.module('TomCss')
     }
   });
 
+  Socket.on('reconnect', function () { location.reload(); });
+  Socket.on('reconnect_failed', function () { location.reload(); });
+
   Socket.on('login success', function (data) {
     self.isLoggedIn     = true;
     self.loginInProcess = false;
