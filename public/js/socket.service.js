@@ -55,7 +55,7 @@ angular.module('Socket', [])
     }
 
     getIo(function (io) {
-      var socket = io('http://www.corvy.net:8000');
+      var socket = io();
       self.on = function (event, callback) {
         socket.on(event, function (data) {
           $rootScope.$apply(function () {
