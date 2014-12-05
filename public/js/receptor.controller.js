@@ -153,6 +153,7 @@ angular.module('TomCss')
     if (self.currentText && (self.userTab === 'pending' || self.userTab === 'recepting') && self.profile.target !== '' && getUser(self.profile.target) !== null) {
       Socket.emit('web message', self.currentText);
       self.currentText = '';
+      self.displayReceptTips = false;
     }
   };
 
@@ -398,6 +399,8 @@ angular.module('TomCss')
   Socket.on('someone is recepted', function (data) {
     if (data.receptor === self.profile._id) {
       self.profile.target = data.recepted;
+      self.profile.targetName = getUser(data.recepted).name;
+      self.displayReceptTips = true;
     }
     getUser(data.recepted).target = data.receptor;
     removeAllMsg(data.recepted, self.unreads);

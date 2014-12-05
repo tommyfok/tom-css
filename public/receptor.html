@@ -39,6 +39,7 @@
                         <div class="Dialogs"
                              id="Dialogs">
                             <div ng-show="ssc.userTab === 'pending' || ssc.userTab === 'recepting'">
+                                <div class="receptTips" ng-show="ssc.profile.targetName">您正在接待 {{ ssc.profile.targetName }} <span ng-show="ssc.displayReceptTips">，请发送信息。</span></div>
                                 <div class="Dialog-item"
                                      ng-repeat="msg in ssc.messages track by $index"
                                      ng-class="{'remote': msg.from_socket === ssc.profile.target}"
