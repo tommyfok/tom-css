@@ -21,7 +21,8 @@ app.get('/server', function (req, res) {
 var mongoose = require('mongoose');
 // 设置数据库链接
 // CSS = Customer Service System
-mongoose.connect('mongodb://localhost:27017/css');
+var dbpath = process.argv[3] === 'dev' ? 'mongodb://localhost:27017/css2' : 'mongodb://localhost:27017/css';
+mongoose.connect(dbpath);
 // 定义数据模型
 // 主键`_id`如未定义，则会被自动添加
 var SocketUserSchema = new mongoose.Schema({
@@ -67,7 +68,7 @@ var SocketUserSchema = new mongoose.Schema({
 // socket.broadcast.to(xxx).emit注意broadcast可提升其逼格，发送广播给其他用户或群组.
 
 // 原始数据
-var port        = Number(process.argv[2]) || 3000,
+var port        = Number(process.argv[2]) || 8000,
     socketUsers = [],
     receptors   = [],
     cacheMsg    = [],
