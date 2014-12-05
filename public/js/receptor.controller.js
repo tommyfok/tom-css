@@ -84,9 +84,12 @@ angular.module('TomCss')
 
   function onNotificationClick (param) {
     window.focus();
-    self.sideTab = param.sideTab;
-    self.userTab = param.userTab;
-    self.recept(param.recept_socket);
+    var user = getUser(param.recept_socket);
+    if (user && (!user.target || user.target === self.profile._id)) {
+      self.recept(param.recept_socket);
+      self.sideTab = param.sideTab;
+      self.userTab = param.userTab;
+    }
   }
 
   function EasyNotify(title, content, iconUrl, param) {
