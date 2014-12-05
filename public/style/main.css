@@ -100,7 +100,7 @@ body {
 
 .Dialogs {
     margin-bottom: 10px;
-    padding: 10px 10px 40px 10px;
+    padding: 40px 10px 10px 10px;
     background: white;
     height: 400px;
     overflow: auto;
@@ -108,17 +108,21 @@ body {
     position: relative;
 }
 
-.Dialogs .receptTips {
-    position: absolute;
-    bottom: 5px;
-    left: 5px;
-    right: 5px;
-    height: 30px;
-    line-height: 30px;
-    font-size: 12px;
-    text-align: center;
-    background: #EEE;
-    color: #f60;
+.Dialog-box .receptTips {
+position: absolute;
+top: 10px;
+left: 50%;
+right: 0;
+height: 30px;
+width: 500px;
+margin-left: -250px;
+line-height: 30px;
+font-size: 12px;
+text-align: center;
+background: #EEE;
+color: #f60;
+box-shadow: 1px 1px 0 rgba(0,0,0,.1);
+border-radius: 5px;
 }
 
 .Dialog-item { text-align: right; }
