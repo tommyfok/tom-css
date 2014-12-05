@@ -167,6 +167,7 @@ angular.module('TomCss')
   self.recept = function (socket_id) {
     Socket.emit('i will recept someone', socket_id);
     self.userTab = 'recepting';
+    self.isSidebarLoading = true;
   };
 
   self.login = function () {
@@ -401,6 +402,7 @@ angular.module('TomCss')
       self.profile.target = data.recepted;
       self.profile.targetName = getUser(data.recepted).name;
       self.displayReceptTips = true;
+      self.isSidebarLoading = false;
     }
     getUser(data.recepted).target = data.receptor;
     removeAllMsg(data.recepted, self.unreads);

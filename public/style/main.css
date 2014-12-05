@@ -198,6 +198,25 @@ body {
     box-shadow: 0 0 30px rgba(0, 0, 0, .3);
 }
 
+.Side-proc-mask {
+    background: url(images/loading.gif) no-repeat 50% 50%;
+    background-color: rgba(255, 255, 255, .4);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 100%;
+    top: 0;
+    z-index: 101;
+    opacity: 0;
+    -webkit-transition: all .3s ease-out;
+    transition: all .3s ease-out;
+}
+
+.Side-proc-mask.isLoading {
+    opacity: 1;
+    left: 0;
+}
+
 .Sidebar-tabs {
     position: absolute;
     left: -60px;
