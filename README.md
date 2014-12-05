@@ -2,8 +2,7 @@
 > This is a realtime customer service system using nodejs, socket.io, mongodb and angularjs etc.
 
 - Support IE8+ and all major browsers
-- See [Client Side Demo](http://tomi.in) 
-- See [Server Side Demo](http://css.tomi.in) and login with `{username: 'tommy', password: '123456'}`
+- See [Client Side Demo](http://dev.h7sc.com)
 
 ## Requirements
 You should have these libraries installed globally.
