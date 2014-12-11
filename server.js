@@ -10,11 +10,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // custom routes
 app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, 'public/customer.html'));
+  res.sendFile(path.join(__dirname, 'public/client.html'));
 });
 
-app.get('/server', function (req, res) {
-  res.sendFile(path.join(__dirname, 'public/receptor.html'));
+app.get('/operator', function (req, res) {
+  res.sendFile(path.join(__dirname, 'public/operator.html'));
+});
+
+app.get('/admin', function (req, res) {
+  res.sendFile(path.join(__dirname, 'public/admin.html'));
 });
 
 // 数据库
@@ -24,101 +28,78 @@ var mongoose = require('mongoose');
 var dbpath = process.argv[3] === 'dev' ? 'mongodb://localhost:27017/css2' : 'mongodb://localhost:27017/css';
 mongoose.connect(dbpath);
 // 定义数据模型
-// 主键`_id`如未定义，则会被自动添加
-var SocketUserSchema = new mongoose.Schema({
-      _id             : {type: String, index: true},
-      account_id      : {type: String, index: true},
-      name            : String,
-      ip              : String,
-      user_agent      : String,
-      referer         : String,
-      connect_time    : Number,
-      disconnect_time : Number
-    }),
-    AccountSchema = new mongoose.Schema({
-      name      : {type: String, index: {unique: true}, required: true},
-      password  : {type: String, required: true},
-      role      : {type: String, index: true, required: true}
-    }),
-    MessageSchema = new mongoose.Schema({
-      from_socket  : {type: String, index: true},
-      to_socket    : {type: String, index: true},
-      from_name    : {type: String, index: true},
-      to_name      : {type: String, index: true},
-      content      : String,
-      create_time  : Number
-    }),
-    SocketUserModel = mongoose.model('SocketUserModel', SocketUserSchema),
-    AccountModel    = mongoose.model('AccountModel', AccountSchema),
-    MessageModel    = mongoose.model('MessageModel', MessageSchema);
-
-// 数据初始化
-// AccountModel({
-//   name: 'tommy',
-//   password: 'e10adc3949ba59abbe56e057f20f883e',
-//   role: 'admin'
-// }).save();
-
-// 搞清楚io，socket的关系
-// io是tmd全局的，io.emit就发送给所有的socket了
-// io.to('xxx').emit可以指定定发送的群组xxx
-// xxx可以是房间(群组)也可以是某个id，因为socket.io自动为每个id创建了一个房间哦！
-// socket是当前连接
-// socket.emit发送消息给连接的客户端
-// socket.broadcast.to(xxx).emit注意broadcast可提升其逼格，发送广播给其他用户或群组.
+var UserSchema = new mongoose.Schema({
+  username   : {type: String, required: true},
+  password   : {type: String, required: true},
+  nickname   : String,
+  visit_count: Number,
+  role_id    : {type: Number, required: true, default: 0}, //0=guest, 1=registered user
+  avatar     : String,
+  email      : String,
+  phone      : String,
+  address    : String
+});
+var OperatorSchema = new mongoose.Schema({
+  username   : {type: String, required: true},
+  password   : {type: String, required: true},
+  nickname   : String,
+  visit_count: Number,
+  role_id    : {type: Number, required: true, default: 0}, //0=operator, 1=admin
+  avatar     : String,
+  email      : String,
+  phone      : String
+});
+var SessionSchema = new mongoose.Schema({
+  _id            : {type: String, required: true},
+  uid            : {type: String, required: true},
+  ip             : String,
+  user_agent     : String,
+  connect_time   : Number,
+  disconnect_time: Number
+});
+var MessageSchema = new mongoose.Schema({
+  from_sid   : {type: String, required: true},
+  from_uid   : {type: String, required: true},
+  to_sid     : String,
+  to_uid     : String,
+  read_sid   : String,
+  read_uid   : String,
+  content    : {type: String, required: true},
+  create_time: {type: Number, required: true},
+  client_rid : String,
+  is_read    : {type: Boolean, default: false},
+  read_time  : {type: Number, required: true, default: 0}
+});
+var RefererSchema = new mongoose.Schema({
+  url        : {type: String, required: true},
+  visit_count: {type: Number, required: true, default: 0},
+  msg_count  : {type: Number, required: true, default: 0}
+});
+var RateSchema = new mongoose.Schema({
+  user_id    : {type: String, required: true},
+  operator_id: {type: String, required: true},
+  start_time : Number,
+  end_time   : Number,
+  msg_count  : Number,
+  score      : {type: Number, required: true, default: 6}
+});
+var UserModel     = mongoose.model('UserModel', UserSchema),
+    SessionModel  = mongoose.model('SessionModel', SessionSchema),
+    MessageModel  = mongoose.model('MessageModel', MessageSchema),
+    RefererModel  = mongoose.model('RefererModel', RefererSchema),
+    OperatorModel = mongoose.model('OperatorModel', OperatorSchema),
+    RateModel     = mongoose.model('RateModel', RateSchema);
 
 // 原始数据
-var port        = Number(process.argv[2]) || 8000,
-    socketUsers = [],
-    receptors   = [],
-    cacheMsg    = [],
-    sessionKeys = {},
-    updateTimer = setInterval(updateReceptorStatus, 3600 * 1000);
+var port = Number(process.argv[2]) || 8000,
+    sessions = [];
 
-AccountModel
-  .find({$or: [{role: 'receptor'}, {role: 'admin'}]})
-  .exec(function (err, result) {
-    if (err) {
-      console.log(err);
-    } else {
-      receptors = result;
-    }
-  });
-
-// 用户类
-function SocketUser (socket) {
-  return {
-    _id             : socket.id,
-    account_id      : '',
-    name            : '游客' + (+new Date).toString(36),
-    ip              : socket.handshake.address,
-    user_agent      : socket.handshake.headers['user-agent'],
-    referer         : socket.handshake.headers.referer,
-    connect_time    : +new Date,
-    disconnect_time : 0,
-    // 以下是不放在数据库的信息
-    role            : 'customer',
-    target          : ''
-  };
+// 会话类
+function Session (params) {
 }
 
 // 消息类
-function Message (fromUser, toUser, msg) {
-  if (!toUser) {
-    var toUser = {
-      _id  : fromUser.target,
-      name : ''
-    };
-  }
-
-  return {
-    from_socket : fromUser._id,
-    to_socket   : toUser._id || '',
-    from_name   : fromUser.name || '',
-    to_name     : toUser.name || '',
-    content     : msg,
-    create_time : +new Date
-  };
+function Message (params) {
 }
 
 // 方法
