@@ -94,127 +94,48 @@ var UserModel     = mongoose.model('UserModel', UserSchema),
 var port = Number(process.argv[2]) || 8000,
     sessions = [];
 
+// 用户类
+function User (socket) {
+}
+
 // 会话类
-function Session (params) {
+function Session (socket) {
 }
 
 // 消息类
 function Message (params) {
 }
 
-// 方法
-function updateReceptorStatus () {
-  receptors.forEach(function (item) {
-    if (sessionKeys[item.name]) {
-      if (sessionKeys[item.name].expire > Date.now()) {
-        item.status = 1;
-      } else {
-        item.status = 0;
-        delete sessionKeys[item.name];
-      }
-    } else {
-      item.status = 0;
-    }
-  });
+// === 方法 ===
+// 登陆
+function doLogin (name, pass, key, callback) {
 }
 
-function doLoginByKey (name, key) {
-  if (sessionKeys[name] && sessionKeys[name].key === key && sessionKeys[name].expire > Date.now()) {
-    sessionKeys[name].expire = Date.now() + 24 * 3600 * 1000;
-    return doLogin(name, key, true);
-  } else {
-    return doLogin(name, key, false);
-  }
+// 获取用户信息
+function getUser (uid, callback) {
 }
 
-function doLogin (name, pass, hasValidKey) {
-  var result = {
-    valid : false,
-    role  : '',
-    _id   : ''
-  };
-
-  // get user data
-  receptors.forEach(function (v) {
-    if (v.name === name) {
-      result.valid = hasValidKey || (v.password === md5(pass));
-      result._id   = v._id;
-      result.role  = v.role;
-      result.name  = name;
-    }
-  });
-
-  if (!hasValidKey && result.valid) {
-    sessionKeys[name] = {
-      key: md5(Date.now() + pass),
-      expire: Date.now() + 24 * 3600 * 1000
-    };
-  }
-
-  return result;
-}
-
-function getUser (socket_id) {
-  if (!socket_id) {
-    return null;
-  }
-
-  for (var i = 0, l = socketUsers.length; i < l; i++) {
-    if (socketUsers[i]._id === socket_id) {
-      return socketUsers[i];
-    }
-  }
-
-  return null;
-}
-
-function getOnlineReceptors () {
-  var list = [];
-  for (var i = 0, l = socketUsers.length; i < l; i++) {
-    if (socketUsers[i].role === 'receptor' || socketUsers[i].role === 'admin') {
-      list.push(socketUsers[i]);
-    }
-  }
-  return list;
-}
-
-function receptorsForClient() {
-  var arr = [];
-  receptors.forEach(function (item) {
-    if (item) {
-      arr.push({
-        name: item.name,
-        role: item.role
-      });
-    }
-  });
-  return arr;
-}
-
-function cachedMsgsFromCustomer (id) {
-  cacheMsg.forEach(function (value) {
-    if (value.customer === id) {
-      return value;
-    }
-  });
-  return false;
+// 判断是否新用户
+function isNewUser (user, callback) {
 }
 
 // 用户连接到服务器
 io.on('connection', function (socket) {
-  // 创建新用户
-  var user = SocketUser(socket);
-  socketUsers.push(user);
+  // 看看socket里面有什么可以获取的
+  console.log(socket);
 
-  // 往数据库添加用户信息
-  SocketUserModel(user).save(function (err) {
-    if (err) {
-      console.log(err);
-    }
+  // 创建新用户
+  var user    = new User(socket),
+      session = new Session(socket);
+
+  // 判断是否为新用户
+  isNewUser(user, function (userdata) {
+    // 如果是新用户，则加入数据库
+    // UserModel(userdata).save();
   });
 
   // 给所有接线员发送用户更新通知
-  io.to('receptors').emit('add user', user);
+  io.to('operators').emit('add user', user);
 
   // 把ID发回给用户
   socket.emit('connection success', user);
