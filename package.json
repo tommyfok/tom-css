@@ -4,6 +4,7 @@
   "description": "my first socket.io app",
   "dependencies": {
     "blueimp-md5": "^1.1.0",
+    "cookie": "^0.1.2",
     "express": "4.x",
     "mongoose": "^3.8.18",
     "socket.io": "^1.1.0"

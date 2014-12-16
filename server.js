@@ -4,6 +4,7 @@ var path    = require('path');
 var http    = require('http').Server(app);
 var io      = require('socket.io')(http);
 var md5     = require('blueimp-md5').md5;
+var cookie  = require('cookie');
 
 // serve static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -30,7 +31,7 @@ mongoose.connect(dbpath);
 // 定义数据模型
 var UserSchema = new mongoose.Schema({
   username   : {type: String, required: true},
-  password   : {type: String, required: true},
+  password   : String, 
   nickname   : String,
   visit_count: Number,
   role_id    : {type: Number, required: true, default: 0}, //0=guest, 1=registered user
@@ -95,7 +96,26 @@ var port = Number(process.argv[2]) || 8000,
     sessions = [];
 
 // 用户类
-function User (socket) {
+function User (_socket, callback) {
+  var header  = _socket.handshake.headers,
+      cookies = cookie.parse(header.cookie),
+      self    = this;
+  // 从客户端获取用户资料
+  self._id    = cookies.hq_id;
+  self.token  = cookies.hq_token;
+  if (!this._id) {
+    self.username = Math.random().toString(36).substr(2,4) + Date.now().toString().substr(-6);
+    // 首次访问的游客
+    UserModel({
+      username: self.username
+    }).save(function (err, data, numrow) {
+      if (!err) {
+        console.log(data);
+      }
+    });
+  } else {
+    socket.emit('first visit', self);
+  }
 }
 
 // 会话类
@@ -121,12 +141,9 @@ function isNewUser (user, callback) {
 
 // 用户连接到服务器
 io.on('connection', function (socket) {
-  // 看看socket里面有什么可以获取的
-  console.log(socket);
-
   // 创建新用户
-  var user    = new User(socket),
-      session = new Session(socket);
+  var user    = User(socket, function (data) { console.log(data); }),
+      session = Session(socket);
 
   // 判断是否为新用户
   isNewUser(user, function (userdata) {
