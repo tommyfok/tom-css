@@ -33,7 +33,7 @@ var UserSchema = new mongoose.Schema({
   username   : {type: String, required: true},
   password   : String, 
   nickname   : String,
-  visit_count: Number,
+  visit_count: {type: Number, default: 0},
   role_id    : {type: Number, required: true, default: 0}, //0=guest, 1=registered user
   avatar     : String,
   email      : String,
@@ -55,8 +55,8 @@ var SessionSchema = new mongoose.Schema({
   uid            : {type: String, required: true},
   ip             : String,
   user_agent     : String,
-  connect_time   : Number,
-  disconnect_time: Number
+  connect_time   : {type: Number, default: Date.now},
+  disconnect_time: {type: Number, default: 0}
 });
 var MessageSchema = new mongoose.Schema({
   from_sid   : {type: String, required: true},
@@ -92,8 +92,11 @@ var UserModel     = mongoose.model('UserModel', UserSchema),
     RateModel     = mongoose.model('RateModel', RateSchema);
 
 // 原始数据
-var port = Number(process.argv[2]) || 8000,
-    sessions = [];
+var port      = Number(process.argv[2]) || 8000,
+    users     = [],
+    operators = [],
+    sessions  = [],
+    sessionKeys = {};
 
 // 用户类
 function User (_socket, callback) {
@@ -101,25 +104,79 @@ function User (_socket, callback) {
       cookies = cookie.parse(header.cookie),
       self    = this;
   // 从客户端获取用户资料
-  self._id    = cookies.hq_id;
-  self.token  = cookies.hq_token;
-  if (!this._id) {
-    self.username = Math.random().toString(36).substr(2,4) + Date.now().toString().substr(-6);
+  self._id      = cookies.hq_id.replace(/(^["']+)|(['"]+$)/gi, '');
+  self.username = Math.random().toString(36).substr(-4) + Date.now().toString().substr(-6);
+  if (!self._id) {
     // 首次访问的游客
     UserModel({
       username: self.username
-    }).save(function (err, data, numrow) {
+    }).save(function (err, data) {
       if (!err) {
-        console.log(data);
+        self._id         = data._id;
+        self.username    = data.username;
+        self.nickname    = data.nickname;
+        self.visit_count = 0;
+      } else {
+        console.log('Save new user error');
       }
+      callback(err, self);
     });
   } else {
-    socket.emit('first visit', self);
+    UserModel.findById(self._id).exec(function (err, data) {
+      if (!err) {
+        if (data._id) {
+          self._id         = data._id;
+          self.username    = data.username;
+          self.nickname    = data.nickname;
+          self.visit_count = data.visit_count + 1;
+          UserModel.update({_id: self._id}, {visit_count: self.visit_count}, function (err) {
+            callback(err, self);
+          });
+        } else {
+          UserModel({
+            username: self.username
+          }).save(function (err, data) {
+            if (!err) {
+              self._id         = data._id;
+              self.username    = data.username;
+              self.nickname    = data.nickname;
+              self.visit_count = 0;
+            } else {
+              console.log('Save user error');
+            }
+            callback(err, self);
+          });
+        }
+      } else {
+        console.log('Get history user error');
+        callback(err, self);
+      }
+    });
   }
 }
 
 // 会话类
-function Session (socket) {
+function Session (_socket, uid, callback) {
+  var self = this;
+  self._id = _socket.id;
+  self.uid = uid;
+  self.ip = _socket.handshake.address;
+  self.user_agent = _socket.handshake.headers['user-agent'];
+  self.close = function (closeCallback) {
+    SessionModel.update({
+      _id: self._id
+    }, {
+      disconnect_time: Date.now()
+    }, function (err, data) {
+      if (err) {
+        console(err);
+      }
+      if (typeof closeCallback === 'function') {
+        closeCallback(self);
+      }
+    });
+  };
+  SessionModel(self).save(callback);
 }
 
 // 消息类
@@ -141,73 +198,31 @@ function isNewUser (user, callback) {
 
 // 用户连接到服务器
 io.on('connection', function (socket) {
+  var user,
+      session;
   // 创建新用户
-  var user    = User(socket, function (data) { console.log(data); }),
-      session = Session(socket);
-
-  // 判断是否为新用户
-  isNewUser(user, function (userdata) {
-    // 如果是新用户，则加入数据库
-    // UserModel(userdata).save();
+  user = new User(socket, function (err, data) {
+    if (err) {
+      socket.emit('connection fail', [err, data]);
+    } else {
+      socket.emit('connection success', data);
+      // 创建新会话
+      session = new Session(socket, data._id, function (err, data) {
+        if (err) {
+          socket.emit('session fail', [err, data]);
+        } else {
+          socket.emit('session success', data);
+        }
+      });
+    }
   });
 
   // 给所有接线员发送用户更新通知
   io.to('operators').emit('add user', user);
 
-  // 把ID发回给用户
-  socket.emit('connection success', user);
-
   // 接线员登陆
   socket.on('login', function (data) {
-    var accountInfo = doLoginByKey(data.name, data.pass);
-    if (accountInfo.valid === true) {
-      // 首先，如果没有其他接线员，那么这个接线员要接收所有离线消息
-      if (getOnlineReceptors().length === 0) {
-        console.log('我是第一个登录的接线员：' + data.name);
-        cacheMsg.forEach(function (value) {
-          socket.emit('add history messages', value);
-          console.log('发送以下数据给接线员' + data.name);
-          console.log(value);
-        });
-        console.log('发送完毕，清空缓存');
-        cacheMsg = [];
-      }
-
-      // 更新内存中socketUsers的信息
-      user.name = data.name;
-      user.role = accountInfo.role;
-      user.account_id = accountInfo._id;
-
-      // 更新数据库中socketUsers的信息
-      SocketUserModel.update({
-        _id: user._id
-      }, {
-        name       : user.name,
-        role       : user.role,
-        account_id : user.account_id
-      }, function (err, result) {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log('接线员 ' + user.name + ' 登录');
-        }
-      });
-
-      // 让这个链接(socket)加入"receptors"房间
-      socket.join('receptors');
-      updateReceptorStatus();
-      socket.emit('login success', {
-        self        : user,
-        socketUsers : socketUsers,
-        receptors   : receptorsForClient(),
-        HQKey       : sessionKeys[user.name].key
-      });
-
-      // 给所有接线员发送用户更新通知
-      io.to('receptors').emit('add receptor', user);
-    } else {
-      socket.emit('login fail');
-    }
+    OperatorModel.find()
   });
 
   // 处理接线员发过来的接待某个客户的消息
