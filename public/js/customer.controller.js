@@ -1,6 +1,6 @@
 angular.module('TomCss')
 
-.controller('ClientSideController', function ($scope, $timeout, $cookieStore, Socket) {
+.controller('ClientSideController', function ($scope, $timeout, $cookies, Socket) {
   var self   = this,
       dialog = document.getElementById('Dialogs');
 
@@ -22,7 +22,12 @@ angular.module('TomCss')
 
   Socket.on('connection success', function (user) {
     self.profile = user;
-    $cookieStore.put('hq_id', user._id);
+    $cookies.hq_id = user._id;
+    Socket.emit('get historyMsgs');
+  });
+
+  Socket.on('get historyMsgs success', function (data) {
+    console.log(data);
   });
 
   Socket.on('you are recepted', function (msg) {
