@@ -315,7 +315,7 @@ function Message (from, to, content, callback) {
   }
 }
 
-// 获取用户信息
+// 获取线上用户信息
 function getUser (uid) {
   users.forEach(function (value) {
     if (value._id === uid) {
@@ -414,12 +414,23 @@ io.on('connection', function (socket) {
         socket.emit('login fail', err);
       } else {
         socket.emit('login success', data);
+        // 创建新会话
+        session = new Session(socket, data._id, function (err, data) {
+          if (err) {
+            socket.emit('session fail', [err, data]);
+          } else {
+            socket.emit('session success', data);
+            user.session = session;
+            users.push(user);
+            sessions.push(session);
+          }
+        });
       }
     });
   });
 
   // 接线员登出
-  socket.on('logout', function () {
+  socket.on('operator logout', function () {
     user.logout(function () {
       socket.emit('logout success');
     });
