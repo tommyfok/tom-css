@@ -4,6 +4,12 @@ angular.module('TomCss')
   var self   = this,
       dialog = document.getElementById('Dialogs');
 
+  function toTop () {
+    $timeout(function () {
+      dialog.scrollTop = dialog.scrollHeight;
+    }, 35);
+  }
+
   self.messages = [];
 
   self.submitText = function () {
@@ -23,34 +29,29 @@ angular.module('TomCss')
   Socket.on('connection success', function (user) {
     self.profile = user;
     $cookies.hq_id = user._id;
-    Socket.emit('get historyMsgs');
-  });
-
-  Socket.on('get historyMsgs success', function (data) {
-    console.log(data);
-  });
-
-  Socket.on('you are recepted', function (msg) {
-    if (self.profile.target !== msg.from_socket) {
-      self.profile.target = msg.from_socket;
-      self.messages.push(msg);
-      $timeout(function () {
-        dialog.scrollTop = dialog.scrollHeight;
-      }, 100);
+    if (!localStorage.getItem('hq_messages')) {
+      Socket.emit('get history messages');
+    } else {
+      self.messages = angular.fromJson(localStorage.getItem('hq_messages'));
     }
+  });
+
+  Socket.on('get history messages success', function (data) {
+    self.messages = data;
+    localStorage.setItem('hq_messages', angular.toJson(self.messages));
+  });
+
+  Socket.on('you are recepted', function (receptor) {
+    self.profile.target = receptor;
   });
 
   Socket.on('add message', function (msg) {
     self.messages.push(msg);
-    $timeout(function () {
-      dialog.scrollTop = dialog.scrollHeight;
-    }, 100);
+    toTop();
+    localStorage.setItem('hq_messages', angular.toJson(self.messages));
   });
 
   Socket.on('receptor disconnect', function (socket_id) {
-    if (self.profile.target === socket_id) {
-      Socket.emit('my receptor is disconnected', self.messages);
-      self.profile.target = '';
-    }
+
   });
 });
