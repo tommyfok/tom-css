@@ -3,6 +3,7 @@ var app      = express();
 var path     = require('path');
 var http     = require('http').Server(app);
 var io       = require('socket.io')(http);
+var cookie   = require('cookie');
 
 // serve static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -52,11 +53,17 @@ function getUser (uid) {
 // 用户连接到服务器
 io.on('connection', function (socket) {
   var user,
-      session;
+      session,
+      cookies         = cookie.parse(socket.handshake.headers.cookie || ''),
+      isOperator      = cookies.hq_role === 'operator',
+      UserConstructor = isOperator ? Operator : User;
+
+  if (isOperator) {
+    socket.join('operators');
+  }
 
   // 创建新用户
-  // 要判断用户是否operator
-  user = new User(socket, function (err, data) {
+  user = new UserConstructor(socket, function (err, data) {
     if (err) {
       socket.emit('connection fail', [err, data]);
     } else {
@@ -71,11 +78,28 @@ io.on('connection', function (socket) {
         user.session = session;
         users.push(user);
         sessions.push(session);
+
+        // 给所有接线员发送用户更新通知
+        io.to('operators').emit('add user', user);
+
+        // web端断开连接
+        socket.on('disconnect', function () {
+          if (!isOperator) {
+            io.to('operators').emit('user disconnect', user);
+          } else {
+            if (user.target && user.target.session) {
+              io.to(user.target.session._id).emit('operator disconnect');
+            }
+            io.to('operators').emit('operator disconnect', user);
+          }
+          session.close(function () {
+            users.splice(users.indexOf(user), 1);
+            sessions.splice(sessions.indexOf(session), 1);
+          });
+        });
       });
     }
   });
-  // 给所有接线员发送用户更新通知
-  io.to('operators').emit('add user', user);
 
   // 处理接线员发过来的接待某个客户的消息
   socket.on('recept someone', function (sid) {
@@ -83,7 +107,7 @@ io.on('connection', function (socket) {
 
   // 客户端获取消息
   socket.on('get history messages', function () {
-    getMessages(user._id, 'all', function (err, data) {
+    Message.getMsgs(user._id, 'all', function (err, data) {
       if (err) {
         socket.emit('get history messages fail');
       } else {
@@ -115,39 +139,20 @@ io.on('connection', function (socket) {
         socket.emit('login fail', err);
       } else {
         socket.emit('login success', data);
-        // 创建新会话
-        session = new Session(socket, data._id, function (err, data) {
-          if (err) {
-            socket.emit('session fail', [err, data]);
-          } else {
-            socket.emit('session success', data);
-            user.session = session;
-            users.push(user);
-            sessions.push(session);
-          }
-        });
       }
     });
   });
 
   // 接线员登出
   socket.on('operator logout', function () {
-    user.logout(function () {
-      socket.emit('logout success');
-    });
-  });
-
-  // web端断开连接
-  socket.on('disconnect', function () {
-    if (user.role_id < 2) {
-      io.to('operators').emit('user disconnect', user);
-    } else if (user.role_id >= 2) {
-      if (user.target && user.target.session) {
-        io.to(user.target.session._id).emit('operator disconnect', user);
+    user.logout(function (err) {
+      if (err) {
+        socket.emit('logout fail');
+        console.log(err);
+      } else {
+        socket.emit('logout success');
       }
-    }
-    users.splice(users.indexOf(user), 1);
-    sessions.splice(sessions.indexOf(session), 1);
+    });
   });
 });
 

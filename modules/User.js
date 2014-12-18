@@ -98,7 +98,7 @@ module.exports = function (mongoose) {
             });
           } else {
             var err = {
-              action: '用户 ' + name + ' 尝试登陆',
+              action: 'User ' + name + ' 尝试登陆',
               error: '账号或密码错误'
             };
             console.log(err);
@@ -144,6 +144,15 @@ module.exports = function (mongoose) {
           }
         }
       });
+    };
+
+    // 登出
+    self.logout = function (callback) {
+      UserModel.update({
+        _id: self._id
+      }, {
+        expire: 0
+      }, callback);
     };
 
     // 私有方法：新用户

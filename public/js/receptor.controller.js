@@ -78,6 +78,7 @@ angular.module('TomCss')
   }
 
   self.login = function () {
+    console.log(self);
     if (self.username && !self.loginInProcess) {
       if (self.password) {
         Socket.emit('operator login', {
@@ -116,15 +117,17 @@ angular.module('TomCss')
     }
   };
 
+  // auto login
+  if ($cookies.hq_username && $cookies.hq_token && !self.isLoggedIn) {
+    self.username = $cookies.hq_username;
+    self.token    = $cookies.hq_token;
+    self.login();
+  }
+
   // Define socket events.
   // connections
   Socket.on('connection success', function (user) {
     self.profile = user;
-    if ($cookies.hq_username && $cookies.hq_token && !self.isLoggedIn) {
-      self.username = $cookies.hq_username;
-      self.token    = $cookies.hq_token;
-      self.login();
-    }
   });
 
   Socket.on('reconnect', function () { location.reload(); });

@@ -6,7 +6,7 @@ module.exports = function (mongoose) {
   // db config
   var SessionSchema = new mongoose.Schema({
     _id            : {type: String, required: true, unique: true},
-    uid            : {type: String},
+    uid            : {type: String, required: true},
     ip             : String,
     user_agent     : String,
     connect_time   : {type: Number, default: Date.now},
@@ -20,6 +20,9 @@ module.exports = function (mongoose) {
     self.uid = uid || '';
     self.ip = _socket.handshake.address;
     self.user_agent = _socket.handshake.headers['user-agent'];
+
+    SessionModel(self).save(callback);
+
     self.close = function (closeCallback) {
       SessionModel.update({
         _id: self._id
@@ -34,6 +37,5 @@ module.exports = function (mongoose) {
         }
       });
     };
-    SessionModel(self).save(callback);
   };
 };

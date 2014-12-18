@@ -25,7 +25,8 @@ module.exports = function (mongoose) {
   return function (_socket, callback) {
     var header  = _socket.handshake.headers,
         cookies = cookie.parse(header.cookie || ''),
-        self    = this;
+        self    = this,
+        callbackAfterLogin = callback;
 
     // 从客户端获取用户信息
     self.cookies = {
@@ -64,11 +65,12 @@ module.exports = function (mongoose) {
                 self.username = data.username;
                 self.nickname = data.nickname;
               }
+              callbackAfterLogin(err, self);
               callback(err, self);
             });
           } else {
             var err = {
-              action: '用户 ' + name + ' 尝试登陆',
+              action: 'Operator ' + name + ' 尝试登陆',
               error: '账号或密码错误'
             };
             console.log(err);
@@ -106,6 +108,7 @@ module.exports = function (mongoose) {
                 self.username = data.username;
                 self.nickname = data.nickname;
               }
+              callbackAfterLogin(err, self);
               callback(err, self);
             });
           } else {
@@ -114,6 +117,15 @@ module.exports = function (mongoose) {
           }
         }
       });
+    };
+
+    // 登出
+    self.logout = function (callback) {
+      OperatorModel.update({
+        _id: self._id
+      }, {
+        expire: 0
+      }, callback);
     };
   };
 };

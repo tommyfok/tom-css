@@ -31,9 +31,10 @@ module.exports = function (mongoose) {
         if (err) {
           console.log('create message failed');
           console.log(err);
+        } else {
+          self._id = data._id;
         }
-        self._id = data._id;
-        callback(err, data);
+        callback(err, self);
       });
 
       self.read = function (_user) {
