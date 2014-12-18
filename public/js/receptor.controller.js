@@ -5,6 +5,8 @@ angular.module('TomCss')
       dialog = document.getElementById('Dialogs'),
       tipsTimer;
 
+  $cookies.hq_role = 'operator';
+
   self.messages          = [];
   self.socketUsers       = [];
   self.profile           = {};
@@ -174,11 +176,18 @@ angular.module('TomCss')
   };
 
   self.login = function () {
-    if (self.username && self.password && !self.loginInProcess) {
-      Socket.emit('login', {
-        name: self.username,
-        pass: self.password
-      });
+    if (self.username && !self.loginInProcess) {
+      if (self.password) {
+        Socket.emit('operator login', {
+          name: self.username,
+          pass: self.password
+        });
+      } else {
+        Socket.emit('operator login', {
+          name : self.username,
+          token: self.token
+        });
+      }
       self.password = '';
       self.loginInProcess = true;
     }
@@ -311,12 +320,12 @@ angular.module('TomCss')
   });
 
   // Define socket events.
+  // connections
   Socket.on('connection success', function (user) {
     self.profile = user;
-    self.socketUsers.push(user);
-    if ($cookies.HQName && $cookies.HQKey && !self.isLoggedIn) {
-      self.username = $cookies.HQName;
-      self.password = $cookies.HQKey;
+    if ($cookies.hq_username && $cookies.hq_token && !self.isLoggedIn) {
+      self.username = $cookies.hq_username;
+      self.token    = $cookies.hq_token;
       self.login();
     }
   });
@@ -325,13 +334,13 @@ angular.module('TomCss')
   Socket.on('reconnect_failed', function () { location.reload(); });
 
   Socket.on('login success', function (data) {
-    self.isLoggedIn     = true;
-    self.loginInProcess = false;
-    self.socketUsers    = data.socketUsers;
-    self.profile        = getUser(data.self._id);
-    self.receptors      = data.receptors;
-    $cookies.HQKey      = data.HQKey;
-    $cookies.HQName     = self.profile.name;
+    self.isLoggedIn      = true;
+    self.loginInProcess  = false;
+    self.profile         = data;
+    $cookies.hq_id       = data._id || '';
+    $cookies.hq_token    = data.token;
+    $cookies.hq_username = data.username;
+    $cookies.hq_nickname = data.nickname || data.username;
   });
 
   Socket.on('create receptor response', function (data) {
@@ -381,8 +390,8 @@ angular.module('TomCss')
   });
 
   Socket.on('login fail', function () {
-    if ($cookies.HQKey) {
-      $cookies.HQKey = '';
+    if ($cookies.hq_token) {
+      $cookies.hq_token = '';
       alert('您的Session已经过期，请重新登录');
     } else {
       alert('帐号或密码不正确！');
@@ -492,8 +501,7 @@ angular.module('TomCss')
   });
 
   Socket.on('logout success', function () {
-    $cookies.HQKey  = '';
-    $cookies.HQName = '';
+    $cookies.hq_token = null;
     location.reload();
   });
 });

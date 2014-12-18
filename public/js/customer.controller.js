@@ -4,6 +4,8 @@ angular.module('TomCss')
   var self   = this,
       dialog = document.getElementById('Dialogs');
 
+  $cookies.hq_role = 'customer';
+
   function toTop () {
     $timeout(function () {
       dialog.scrollTop = dialog.scrollHeight;
@@ -26,19 +28,23 @@ angular.module('TomCss')
     }
   };
 
-  Socket.on('connection success', function (user) {
-    self.profile = user;
-    $cookies.hq_id = user._id;
-    if (!localStorage.getItem('hq_messages')) {
+  Socket.on('connection success', function (data) {
+    self.profile = data;
+    $cookies.hq_id       = data._id;
+    $cookies.hq_username = data.username;
+    $cookies.hq_nickname = data.nickname || data.username;
+    $cookies.hq_token    = data.token || '';
+    var localMsgs = localStorage.getItem('hq_' + self.profile._id + 'messages');
+    if (!localMsgs) {
       Socket.emit('get history messages');
     } else {
-      self.messages = angular.fromJson(localStorage.getItem('hq_messages'));
+      self.messages = angular.fromJson(localMsgs);
     }
   });
 
   Socket.on('get history messages success', function (data) {
     self.messages = data;
-    localStorage.setItem('hq_messages', angular.toJson(self.messages));
+    localStorage.setItem('hq_' + self.profile._id + 'messages', angular.toJson(self.messages));
   });
 
   Socket.on('you are recepted', function (receptor) {
@@ -48,7 +54,7 @@ angular.module('TomCss')
   Socket.on('add message', function (msg) {
     self.messages.push(msg);
     toTop();
-    localStorage.setItem('hq_messages', angular.toJson(self.messages));
+    localStorage.setItem('hq_' + self.profile._id + 'messages', angular.toJson(self.messages));
   });
 
   Socket.on('receptor disconnect', function (socket_id) {
