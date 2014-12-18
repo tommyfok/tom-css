@@ -75,6 +75,7 @@ io.on('connection', function (socket) {
         } else {
           socket.emit('session success', data);
         }
+
         user.session = session;
         users.push(user);
         sessions.push(session);
@@ -101,9 +102,28 @@ io.on('connection', function (socket) {
     }
   });
 
-  // 处理接线员发过来的接待某个客户的消息
-  socket.on('recept someone', function (sid) {
+  socket.on('get unread users', function () {
+    Message.getUnreadUids(function (err, data) {
+      if (err) {
+        console.log(err);
+        socket.emit('get unread users fail', err);
+      } else {
+        var uidArray = [];
+        data.forEach(function (value) {
+          uidArray.push(value._id);
+        });
+        User.getUsers(uidArray, function (err, data) {
+          if (err) {
+            console.log(err);
+            socket.emit('get unread users fail', err);
+          } else {
+            socket.emit('get unread users success', data);
+          }
+        });
+      }
+    });
   });
+
 
   // 客户端获取消息
   socket.on('get history messages', function () {
@@ -130,6 +150,19 @@ io.on('connection', function (socket) {
         }
       }
     });
+  });
+
+  // 接待用户
+  socket.on('recept user', function (uid) {
+    var targetUser = getUser(uid);
+    if (targetUser) {
+      user.target = getUser(uid);
+      user.target.target = user;
+      socket.emit('recept success', user.target._id);
+      io.to(user.target.session._id).emit('you are recepted', user);
+    } else {
+      socket.emit('recept fail');
+    }
   });
 
   // 接线员登陆

@@ -22,8 +22,8 @@ module.exports = function (mongoose) {
   });
   var UserModel = mongoose.model('UserModel', UserSchema);
 
-  // return a constructor
-  return function (_socket, callback) {
+  // constructor
+  function User (_socket, callback) {
     var header  = _socket.handshake.headers,
         cookies = cookie.parse(header.cookie || ''),
         self    = this;
@@ -172,5 +172,19 @@ module.exports = function (mongoose) {
         callback(err, self);
       });
     }
+  }
+
+  User.getOne = function (uid, callback) {
+    UserModel.find({
+      _id: uid
+    }, callback);
   };
+
+  User.getUsers = function (uidArray, callback) {
+    UserModel.find({
+      _id: {$in: uidArray}
+    }, callback);
+  };
+
+  return User;
 };

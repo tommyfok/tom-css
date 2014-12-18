@@ -21,8 +21,8 @@ module.exports = function (mongoose) {
   });
   var OperatorModel = mongoose.model('OperatorModel', OperatorSchema);
 
-  // return a constructor
-  return function (_socket, callback) {
+  // constructor
+  function Operator (_socket, callback) {
     var header  = _socket.handshake.headers,
         cookies = cookie.parse(header.cookie || ''),
         self    = this,
@@ -127,5 +127,19 @@ module.exports = function (mongoose) {
         expire: 0
       }, callback);
     };
+  }
+
+  Operator.getOne = function (uid, callback) {
+    OperatorModel.find({
+      _id: uid
+    }, callback);
   };
+
+  Operator.getUsers = function (uidArray, callback) {
+    OperatorModel.find({
+      _id: {$in: uidArray}
+    }, callback);
+  };
+
+  return Operator;
 };

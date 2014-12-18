@@ -59,6 +59,13 @@ module.exports = function (mongoose) {
     }
   }
 
+  Message.getUnreadUids = function (callback) {
+    MessageModel.aggregate([
+      {$match: {is_read: false}},
+      {$group: {_id: '$from_uid'}}
+    ]).exec(callback);
+  };
+
   Message.getMsgs = function (uid, type, callback) {
     var queryObject = {};
     if (type === 'from') {
