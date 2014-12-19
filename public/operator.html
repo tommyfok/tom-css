@@ -7,6 +7,7 @@
     </head>
 
     <body>
+        <div class="Global-mask" ng-class="{'isLoading': ssc.isLoading}"></div>
         <div class="Wrapper" ng-class="{'manage': ssc.isLoggedIn}">
             <div class="Wrapper-inner">
                 <form class="Login-form"
@@ -36,40 +37,11 @@
                 <div class="loginAndShow"
                      ng-class="{isLoggedIn: ssc.isLoggedIn}">
                     <div class="Dialog-box">
-                        <div class="receptTips" ng-show="(ssc.userTab === 'pending' || ssc.userTab === 'recepting') && !ssc.isTargetOffline && ssc.profile.targetName">
-                            当前用户：{{ ssc.profile.targetName }}
-                            <span ng-show="ssc.displayReceptTips">，请发送消息。</span>
-                        </div>
-
                         <div class="Dialogs"
                              id="Dialogs">
-                            <div ng-show="ssc.userTab === 'pending' || ssc.userTab === 'recepting'">
-                                <div class="Dialog-item"
-                                     ng-repeat="msg in ssc.messages track by $index"
-                                     ng-class="{'remote': msg.from_socket === ssc.profile.target}"
-                                     ng-if="(msg.from_socket === ssc.profile.target) || (msg.to_socket === ssc.profile.target && msg.to_socket !== '')">
-                                    <p ng-bind="msg.content"></p>
-                                </div>
-                                <!-- 当正在聊天的用户离线了 -->
-                                <div class="Dialog-item info"
-                                     ng-show="ssc.isTargetOffline">
-                                    <p>该用户已离线</p>
-                                </div>
-                            </div>
-
-                            <div ng-show="ssc.userTab === 'missed'">
-                                <div class="Dialog-item remote"
-                                     ng-repeat="msg in ssc.missedMessages track by $index">
-                                    <p ng-bind="msg.content"></p>
-                                </div>
-                            </div>
-
-                            <div ng-show="ssc.userTab === 'history'">
-                                <div class="Dialog-item"
-                                     ng-repeat="msg in ssc.historyMessages track by $index"
-                                     ng-class="{'remote': (msg.from_name.indexOf('游客') === 0)}">
-                                    <p ng-bind="msg.content"></p>
-                                </div>
+                            <div class="Dialog-item"
+                                 ng-repeat="msg in ssc.messages track by $index">
+                                <p ng-bind="msg.content"></p>
                             </div>
                         </div>
 
@@ -83,7 +55,6 @@
                     </div>
 
                     <div class="Sidebar">
-                        <div class="Side-proc-mask" ng-class="{'isLoading': ssc.isSidebarLoading}"></div>
                         <div class="Sidebar-tabs">
                             <span class="Sidebar-tab Sidebar-tab-users"
                                   ng-click="ssc.sideTab = 'users'"
@@ -195,7 +166,7 @@
                                       ng-class="{active: ssc.userTab === 'pending'}">
                                     <span class="unreads"
                                           ng-show="ssc.hasPendingUser()"></span>
-                                    未处理
+                                    待处理
                                 </span>
 
                                 <span class="User-tab"

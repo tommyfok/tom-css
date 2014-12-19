@@ -1,3 +1,5 @@
+// ========== 全局变量 ========== //
+// 引用包
 var express  = require('express');
 var app      = express();
 var path     = require('path');
@@ -5,29 +7,14 @@ var http     = require('http').Server(app);
 var io       = require('socket.io')(http);
 var cookie   = require('cookie');
 
-// serve static files
-app.use(express.static(path.join(__dirname, 'public')));
-
-// custom routes
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, 'public/client.html'));
-});
-
-app.get('/operator', function (req, res) {
-  res.sendFile(path.join(__dirname, 'public/operator.html'));
-});
-
-app.get('/admin', function (req, res) {
-  res.sendFile(path.join(__dirname, 'public/admin.html'));
-});
-
-// 数据库
-var mongoose = require('mongoose');
+// 内存数据
+var port       = Number(process.argv[2]) || 8000,
+    users      = [],
+    sessions   = [],
+    isOperator = false;
 
 // 设置数据库，获取构造函数
-// CSS = Customer Service System
-var dbpath = process.argv[3] === 'dev' ? 'mongodb://localhost:27017/css2' : 'mongodb://localhost:27017/css';
-mongoose.connect(dbpath);
+var mongoose = require('mongoose').connect(process.argv[3] === 'dev' ? 'mongodb://localhost:27017/css2' : 'mongodb://localhost:27017/css');
 var User     = require('./modules/User.js')(mongoose);
 var Operator = require('./modules/Operator.js')(mongoose);
 var Session  = require('./modules/Session.js')(mongoose);
@@ -35,11 +22,27 @@ var Message  = require('./modules/Message.js')(mongoose);
 var Referer  = require('./modules/Referer.js')(mongoose);
 var Rate     = require('./modules/Rate.js')(mongoose);
 
-// 原始数据
-var port     = Number(process.argv[2]) || 8000,
-    users    = [],
-    sessions = [];
+// ========== 路由 ========== //
+// 静态资源
+app.use(express.static(path.join(__dirname, 'public')));
 
+// 根路径：测试客户端
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, 'public/client.html'));
+  isOperator = false;
+});
+// 接线员
+app.get('/operator', function (req, res) {
+  res.sendFile(path.join(__dirname, 'public/operator.html'));
+  isOperator = true;
+});
+// 管理员
+app.get('/admin', function (req, res) {
+  res.sendFile(path.join(__dirname, 'public/admin.html'));
+  isOperator = true;
+});
+
+// ========== 通用函数 ========== //
 // 获取线上用户信息
 function getUser (uid) {
   users.forEach(function (value) {
@@ -50,12 +53,11 @@ function getUser (uid) {
   return null;
 }
 
+// ========== Socket事件定义 ========== //
 // 用户连接到服务器
 io.on('connection', function (socket) {
   var user,
       session,
-      cookies         = cookie.parse(socket.handshake.headers.cookie || ''),
-      isOperator      = cookies.hq_role === 'operator',
       UserConstructor = isOperator ? Operator : User;
 
   if (isOperator) {
@@ -102,6 +104,7 @@ io.on('connection', function (socket) {
     }
   });
 
+  // 获取用户未读消息
   socket.on('get unread users', function () {
     Message.getUnreadUids(function (err, data) {
       if (err) {
@@ -123,7 +126,6 @@ io.on('connection', function (socket) {
       }
     });
   });
-
 
   // 客户端获取消息
   socket.on('get history messages', function () {
@@ -189,6 +191,7 @@ io.on('connection', function (socket) {
   });
 });
 
+// ========== 服务器监听 ========== //
 http.listen(port, function () {
   console.log('服务器正在监听端口' + port + '的请求');
 });

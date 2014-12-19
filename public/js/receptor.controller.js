@@ -5,8 +5,6 @@ angular.module('TomCss')
       dialog = document.getElementById('Dialogs'),
       tipsTimer;
 
-  $cookies.hq_role = 'operator';
-
   self.messages          = [];
   self.socketUsers       = [];
   self.profile           = {};
@@ -141,6 +139,12 @@ angular.module('TomCss')
     $cookies.hq_token    = data.token;
     $cookies.hq_username = data.username;
     $cookies.hq_nickname = data.nickname || data.username;
+
+    Socket.emit('get unread users');
+  });
+
+  Socket.on('get unread users success', function (data) {
+    console.log(data);
   });
 
   Socket.on('login fail', function () {

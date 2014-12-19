@@ -4,8 +4,6 @@ angular.module('TomCss')
   var self   = this,
       dialog = document.getElementById('Dialogs');
 
-  $cookies.hq_role = 'customer';
-
   function toTop () {
     $timeout(function () {
       dialog.scrollTop = dialog.scrollHeight;
