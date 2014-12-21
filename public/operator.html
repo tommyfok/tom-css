@@ -6,9 +6,17 @@
         <link rel="stylesheet" type="text/css" href="/style/main.css">
     </head>
 
-    <body>
-        <div class="Global-mask" ng-class="{'isLoading': ssc.isLoading}"></div>
-        <div class="Wrapper" ng-class="{'manage': ssc.isLoggedIn}">
+    <body ng-class="{lock: ssc.isLoading}">
+        <div class="Global-mask"
+             ng-class="{'isLoading': ssc.isLoading}"
+             ng-click="ssc.isLoading = false">
+             <div class="Global-mask-inner">
+                 <div class="Global-mask-content">
+                     {{ ssc.loadingTips || 'Loading...' }}
+                 </div>
+             </div>
+        </div>
+        <div class="Wrapper" ng-class="{manage: ssc.isLoggedIn}">
             <div class="Wrapper-inner">
                 <form class="Login-form"
                       ng-show="!ssc.isLoggedIn"
@@ -165,7 +173,7 @@
                                       ng-click="ssc.userTab = 'pending'"
                                       ng-class="{active: ssc.userTab === 'pending'}">
                                     <span class="unreads"
-                                          ng-show="ssc.hasPendingUser()"></span>
+                                          ng-show="ssc.pendings.length"></span>
                                     待处理
                                 </span>
 
@@ -188,10 +196,9 @@
 
                             <ul class="User-list"
                                 ng-show="ssc.userTab === 'pending'">
-                                <li ng-repeat="user in ssc.socketUsers"
-                                    ng-if="user.role === 'customer' && user.target === ''"
+                                <li ng-repeat="user in ssc.pendings"
                                     ng-click="ssc.recept(user._id)">
-                                    {{ user.name }}
+                                    {{ user.username }}
                                     <span class="unreads"
                                           ng-show="ssc.countPendings(user._id)"
                                           ng-bind="ssc.countPendings(user._id)"></span>
@@ -266,6 +273,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/angular.js"></script>
     <script src="/js/angular-cookies.js"></script>
+    <script src="/js/angular-animate.js"></script>
     <script src="/js/app.js"></script>
     <script src="/js/socket.service.js"></script>
     <script src="/js/receptor.controller.js"></script>

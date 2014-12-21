@@ -57,15 +57,14 @@ function getUser (uid) {
 // 用户连接到服务器
 io.on('connection', function (socket) {
   var user,
-      session,
-      UserConstructor = isOperator ? Operator : User;
+      session;
 
   if (isOperator) {
     socket.join('operators');
   }
 
   // 创建新用户
-  user = new UserConstructor(socket, function (err, data) {
+  user = new (isOperator ? Operator : User)(socket, function (err, data) {
     if (err) {
       socket.emit('connection fail', [err, data]);
     } else {
@@ -83,7 +82,11 @@ io.on('connection', function (socket) {
         sessions.push(session);
 
         // 给所有接线员发送用户更新通知
-        io.to('operators').emit('add user', user);
+        if (isOperator) {
+          io.to('operators').emit('operator online', user);
+        } else {
+          io.to('operators').emit('user online', user);
+        }
 
         // web端断开连接
         socket.on('disconnect', function () {
@@ -104,7 +107,7 @@ io.on('connection', function (socket) {
     }
   });
 
-  // 获取用户未读消息
+  // 获取拥有未读消息的用户列表
   socket.on('get unread users', function () {
     Message.getUnreadUids(function (err, data) {
       if (err) {
@@ -125,6 +128,14 @@ io.on('connection', function (socket) {
         });
       }
     });
+  });
+
+  socket.on('check user state', function (uid) {
+    if (getUser(uid)) {
+      socket.emit('check user state success', {uid: true});
+    } else {
+      socket.emit('check user state success', {uid: false});
+    }
   });
 
   // 客户端获取消息

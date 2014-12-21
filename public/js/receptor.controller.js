@@ -2,24 +2,20 @@ angular.module('TomCss')
 
 .controller('ServerSideController', function ($scope, $timeout, $cookies, Socket) {
   var self   = this,
-      dialog = document.getElementById('Dialogs'),
-      tipsTimer;
+      dialog = document.getElementById('Dialogs');
 
   self.messages          = [];
-  self.socketUsers       = [];
+  self.users             = [];
+  self.operators         = [];
   self.profile           = {};
   self.sideTab           = 'users';
   self.userTab           = 'pending';
   self.configTab         = 'personal';
   self.unreads           = [];
   self.pendings          = [];
-  self.missedCustomers   = [];
-  self.missedMessages    = [];
-  self.historyCustomers  = [];
-  self.historyMessages   = [];
   self.isBlur            = false;
-  self.isTargetOffline   = false;
-  self.lastOfflineSocket = '';
+  self.isLoading         = false;
+  self.isLoggedIn        = false;
 
   angular.element(window).on('blur', function () {
     self.isBlur = true;
@@ -76,8 +72,7 @@ angular.module('TomCss')
   }
 
   self.login = function () {
-    console.log(self);
-    if (self.username && !self.loginInProcess) {
+    if (self.username) {
       if (self.password) {
         Socket.emit('operator login', {
           name: self.username,
@@ -90,7 +85,7 @@ angular.module('TomCss')
         });
       }
       self.password = '';
-      self.loginInProcess = true;
+      self.isLoading = true;
     }
   };
 
@@ -115,6 +110,10 @@ angular.module('TomCss')
     }
   };
 
+  self.recept = function () {
+    self.isLoading = true;
+  };
+
   // auto login
   if ($cookies.hq_username && $cookies.hq_token && !self.isLoggedIn) {
     self.username = $cookies.hq_username;
@@ -132,8 +131,8 @@ angular.module('TomCss')
   Socket.on('reconnect_failed', function () { location.reload(); });
 
   Socket.on('login success', function (data) {
+    self.isLoading       = false;
     self.isLoggedIn      = true;
-    self.loginInProcess  = false;
     self.profile         = data;
     $cookies.hq_id       = data._id || '';
     $cookies.hq_token    = data.token;
@@ -144,7 +143,7 @@ angular.module('TomCss')
   });
 
   Socket.on('get unread users success', function (data) {
-    console.log(data);
+    self.pendings = self.pendings.concat(data);
   });
 
   Socket.on('login fail', function () {
@@ -154,7 +153,7 @@ angular.module('TomCss')
     } else {
       alert('帐号或密码不正确！');
     }
-    self.loginInProcess = false;
+    self.isLoading = false;
   });
 
   Socket.on('logout success', function () {
