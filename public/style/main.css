@@ -26,7 +26,7 @@ body.lock {
     background: rgba(0, 0, 0, .5);
     position: fixed;
     left: 0;
-    top: 0;
+    top: -100%;
     width: 100%;
     height: 0;
     z-index: 101;
@@ -39,10 +39,12 @@ body.lock {
 .Global-mask.isLoading {
     opacity: 1;
     height: 100%;
+    top: 0;
 }
 
 .Global-mask.isLoading-remove,
 .Global-mask.isLoading-remove.isLoading-remove-active {
+    top: 0;
     height: 100%;
 }
 
@@ -58,9 +60,10 @@ body.lock {
     padding: 20px;
     background: #fff;
     color: #666;
-    border: 5px solid #999;
     display: inline-block;
     line-height: 2em;
+    outline: 8px solid rgba(0, 0, 0, .15);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
 }
 
 
