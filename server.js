@@ -123,6 +123,10 @@ io.on('connection', function (socket) {
             console.log(err);
             socket.emit('get unread users fail', err);
           } else {
+            data.forEach(function (value, index) {
+              data[index] = JSON.parse(JSON.stringify(value));
+              data[index].isOnline = !!getUser(value._id);
+            });
             socket.emit('get unread users success', data);
           }
         });
@@ -130,23 +134,13 @@ io.on('connection', function (socket) {
     });
   });
 
+  // 检查用户在线状态
   socket.on('check user state', function (uid) {
-    if (getUser(uid)) {
+    if (!!getUser(uid)) {
       socket.emit('check user state success', {uid: true});
     } else {
       socket.emit('check user state success', {uid: false});
     }
-  });
-
-  // 客户端获取消息
-  socket.on('get history messages', function () {
-    Message.getMsgs(user._id, 'all', function (err, data) {
-      if (err) {
-        socket.emit('get history messages fail');
-      } else {
-        socket.emit('get history messages success', data);
-      }
-    });
   });
 
   // 处理从web端发来的消息
@@ -168,14 +162,37 @@ io.on('connection', function (socket) {
   // 接待用户
   socket.on('recept user', function (uid) {
     var targetUser = getUser(uid);
-    if (targetUser) {
-      user.target = getUser(uid);
-      user.target.target = user;
-      socket.emit('recept success', user.target._id);
-      io.to(user.target.session._id).emit('you are recepted', user);
-    } else {
-      socket.emit('recept fail');
-    }
+    Message.getMsgs(uid, 'all', function (err, data) {
+      if (err) {
+        console.log('获取消息错误');
+        console.log(err);
+        socket.emit('recept user fail');
+      } else {
+        if (!!targetUser) {
+          Message.readAll(uid, user, function (err, read_count) {
+            if (err) {
+              socket.emit('recept user fail');
+              socket.emit('read history messages fail');
+            } else {
+              user.target = targetUser;
+              targetUser.target = user;
+              socket.emit('recept user success', targetUser);
+              socket.emit('read history messages success', data);
+              io.to(targetUser.session._id).emit('you are recepted', user);
+            }
+          });
+        } else {
+          Message.readAll(uid, user, function (err, read_count) {
+            if (err) {
+              socket.emit('read history messages fail');
+            } else {
+              socket.emit('read history messages success', data);
+            }
+          });
+          socket.emit('recept user fail');
+        }
+      }
+    });
   });
 
   // 接线员登陆

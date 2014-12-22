@@ -4,7 +4,7 @@ angular.module('TomCss')
   var self   = this,
       dialog = document.getElementById('Dialogs');
 
-  self.messages          = [];
+  self.displayMsgs       = [];
   self.users             = [];
   self.operators         = [];
   self.profile           = {};
@@ -110,7 +110,8 @@ angular.module('TomCss')
     }
   };
 
-  self.recept = function () {
+  self.recept = function (uid) {
+    Socket.emit('recept user', uid);
     self.isLoading = true;
   };
 
@@ -130,6 +131,7 @@ angular.module('TomCss')
   Socket.on('reconnect', function () { location.reload(); });
   Socket.on('reconnect_failed', function () { location.reload(); });
 
+  // 成功登陆
   Socket.on('login success', function (data) {
     self.isLoading       = false;
     self.isLoggedIn      = true;
@@ -138,14 +140,10 @@ angular.module('TomCss')
     $cookies.hq_token    = data.token;
     $cookies.hq_username = data.username;
     $cookies.hq_nickname = data.nickname || data.username;
-
     Socket.emit('get unread users');
   });
 
-  Socket.on('get unread users success', function (data) {
-    self.pendings = self.pendings.concat(data);
-  });
-
+  // 登录失败
   Socket.on('login fail', function () {
     if ($cookies.hq_token) {
       $cookies.hq_token = '';
@@ -153,6 +151,23 @@ angular.module('TomCss')
     } else {
       alert('帐号或密码不正确！');
     }
+    self.isLoading = false;
+  });
+
+  // 成功获取用户列表
+  Socket.on('get unread users success', function (data) {
+    self.pendings = self.pendings.concat(data);
+  });
+
+  // 成功接待用户
+  Socket.on('recept user success', function (data) {
+    self.profile.target = data;
+    console.log(self);
+  });
+
+  // 成功获取历史消息
+  Socket.on('read history messages success', function (data) {
+    self.displayMsgs = data;
     self.isLoading = false;
   });
 

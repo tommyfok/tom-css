@@ -48,7 +48,7 @@
                         <div class="Dialogs"
                              id="Dialogs">
                             <div class="Dialog-item"
-                                 ng-repeat="msg in ssc.messages track by $index">
+                                 ng-repeat="msg in ssc.displayMsgs track by $index">
                                 <p ng-bind="msg.content"></p>
                             </div>
                         </div>
@@ -194,6 +194,7 @@
                                       ng-class="{active: ssc.userTab === 'missed'}">离线咨询</span>
                             </div>
 
+                            <!-- 待处理列表 -->
                             <ul class="User-list"
                                 ng-show="ssc.userTab === 'pending'">
                                 <li ng-repeat="user in ssc.pendings"

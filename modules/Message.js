@@ -38,7 +38,6 @@ module.exports = function (mongoose) {
       });
 
       self.read = function (_user) {
-        console.log(self._id);
         MessageModel.update({
           _id: self._id
         }, {
@@ -87,6 +86,28 @@ module.exports = function (mongoose) {
       return callback({error: 'type 参数不正确'}, []);
     }
     MessageModel.find(queryObject, callback);
+  };
+
+  Message.readAll = function (from_uid, reader, callback) {
+    var updateQuery = {};
+    if (reader) {
+      updateQuery = {
+        $or: [
+          {from_uid: from_uid},
+          {to_uid: reader._id}
+        ]
+      };
+    } else {
+      updateQuery = {
+        from_uid: from_uid
+      };
+    }
+    MessageModel.update(updateQuery, {
+      is_read: true,
+      read_uid: reader._id,
+      read_sid: reader.session._id,
+      read_time: Date.now()
+    }, callback);
   };
 
   return Message;
